@@ -1,0 +1,14 @@
+.slds-modal__container{
+	width: 50% !important;
+    height: Auto !important;
+	max-height: 280% !important;
+}
+
+.slds-modal__content{
+	overflow-y: scroll !important;
+    overflow: initial !important;
+}
+
+.slds-fade-in-open{
+	overflow: auto !important;
+}

@@ -1,0 +1,33 @@
+.THIS .class1{
+    margin-left:150px; 
+    margin-right:90px;
+}
+
+.THIS div.slds-modal__container {
+    width: 75% !important;
+    max-width: 75% !important;
+}
+
+.THIS textarea{
+    height : 290px;
+}
+
+.THIS .servRequid > label {
+    display: none;
+}
+
+.THIS lightning-helptext {
+    display: none;
+}
+
+.THIS lightning-input-field.serlNumber .slds-form-element .slds-form-element__control input :placeholder-shown{
+    content:'Serial Number';
+}
+
+.THIS lightning-datepicker{
+    font-size: 13px;
+}
+
+.THIS lightning-timepicker{
+    font-size: 13px;
+}

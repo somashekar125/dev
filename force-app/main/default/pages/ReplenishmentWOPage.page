@@ -1,0 +1,10 @@
+<apex:page standardController="ProductItem" recordSetVar="items">
+    <apex:includeLightning />
+    <div id="lwcContainer"></div>
+    <script>
+        $Lightning.use("c:ReplenishmentWOApp", function() {
+            //$Lightning.createComponent("c:ReplenishmentWO", {recordId: "{!ProductItem.Id}"}, "lwcContainer");
+            $Lightning.createComponent("c:ReplenishmentWO", {}, "lwcContainer");
+        });
+    </script>
+</apex:page>

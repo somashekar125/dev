@@ -1,0 +1,16 @@
+.THIS .leftPaddingClass {
+    padding-left: 2rem;
+    margin-top: -1%;
+}
+
+.THIS div.slds-scrollable_y::-webkit-scrollbar {
+	width: 7px;
+}
+
+.THIS .slds-pill .pillSize{
+    width: 100% !important;
+}
+
+.THIS .slds-pill__label {
+    white-space: normal;
+}

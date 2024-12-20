@@ -1,0 +1,216 @@
+<template>
+    <div style={opacity}>
+        <div style="position: sticky; top: 0; background-color: white; z-index: 1;">
+            <div class="slds-align_absolute-center" style="display: flex; align-items: center;">
+                <template if:false={switchLayout}>
+                    <div class="slds-p-around_medium" style="margin-right: 10px;">
+                        <lightning-button label="Create Project Accounts" onclick={projAccCreation} variant="brand"></lightning-button>
+                    </div>
+                    <div class="slds-p-around_medium" style="margin-right: 10px;">
+                        <lightning-button label="Delete Project Accounts?" onclick={showDeleteProjAcctLayout} variant="Neutral"></lightning-button>
+                    </div>
+                </template>
+                <template if:true={switchLayout}>
+                    <div class="slds-p-around_medium" style="margin-right: 10px;">
+                        <lightning-button label="Create Project Accounts?" onclick={showCreateProjAcctLayout} variant="Neutral"></lightning-button>
+                    </div>
+                    <div class="slds-p-around_medium" style="margin-right: 30px;">
+                        <lightning-button label="Delete Project Accounts" onclick={projAccDeletion} variant="brand"></lightning-button>
+                    </div>
+                </template>
+                <div class="custom-file-input" style="display: flex; align-items: center; margin-top: -17px;">
+                    <lightning-input type="file" accept=".csv" onchange={handleFilesChange}></lightning-input>
+                    <lightning-primitive-icon icon-name="utility:info" size="xx-small" class="slds-icon slds-icon-text-default" style="cursor: pointer; margin-left: 5px;margin-bottom: -10%; width: auto;" onmouseover={showTooltip} onmouseout={hideTooltip}></lightning-primitive-icon>
+                    <div class="custom-tooltip slds-hide" style="position: fixed; background-color: #011a3c; color: #ffffff; border: 1px solid #5b5c5f; border-radius: 4px; padding: 10px; top: 80px; left: 10; z-index: 10;">
+                        <div class="tooltip-arrow"></div>
+                        Headers should be Salesforce field labels.
+                        <br />
+                        To Update: Project Account ID is required.
+                    </div>
+                </div>
+            </div>
+        </div>        
+        <template if:true={showSpinner}>
+            <lightning-spinner alternative-text="Loading..." variant="brand" style="display:contents;"></lightning-spinner>
+        </template>
+
+        <div data-key="searchdiv" class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none" style="padding-left: 1%;padding-right: 1%;">
+            <input type="text" data-name="searchAccInput" value={searchKey} onkeyup={handleKeyChange} class="slds-input slds-combobox__input slds-has-focus" id="combobox-id-2" aria-autocomplete="list" aria-controls="listbox-id-2" role="textbox" placeholder="Search Accounts..." />
+            <span class="slds-icon_container slds-icon-utility-search slds-input__icon slds-input__icon_right">
+                <lightning-icon icon-name="utility:search" size="xx-Small" class="slds-icon slds-icon slds-icon_x-small slds-icon-text-default" aria-hidden="true"></lightning-icon>
+            </span>
+        </div>
+        <template if:true={recordsPresent}>
+            <div id="listbox-id-2-venu" data-key="dropdownresult" class="slds-show slds-dropdown slds-dropdown_length-with-icon-7 slds-dropdown_fluid" role="listbox">
+                <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                    <template for:each={recordsListOnSearch} for:item="record" for:index="index">
+                        <li data-id={record.Id} data-name="fromSearchBar" data-index={index} key={record.Id} onclick={onRecordSelection} role="presentation" class="slds-listbox__item">
+                            <div data-key={record.Id} data-name={record.Name} class="slds-media slds-listbox__option slds-listbox__option_entity slds-listbox__option_has-meta" role="option">
+                                <span class="slds-media__figure slds-listbox__option-icon">
+                                    <span class="slds-icon_container">
+                                        <lightning-icon icon-name="standard:account" size="small"></lightning-icon>
+                                    </span>
+                                </span>
+                                <span class="slds-media__body">
+                                    <span data-key={record.Id} data-name={record.Name} class="slds-listbox__option-text slds-listbox__option-text_entity">{record.Name}</span>
+                                    <span data-key={record.Id} data-name={record.Name} class="slds-listbox__option-text slds-listbox__option-text_entity">{objectName}</span>
+                                </span>
+                            </div>
+                        </li>
+                    </template>
+                </ul>
+            </div>
+        </template>
+        <template if:false={switchLayout}>
+            <p style="font-size: medium;font-weight: bold;margin-top:1%;">
+                Account List:
+            </p>
+            <div style="max-height: 290px;overflow: auto;" title="Account List">
+                <table id="table1" class="slds-table slds-table_bordered slds-table_cell-buffer">
+                    <thead>
+                        <tr class="slds-text-title_caps">
+                            <th scope="col" style="text-align: center; width: 2%;"></th>
+                            <th style="width: 30%;">
+                                <div> Account </div>
+                            </th>
+                            <th style="width: 50%;">
+                                <div> Address </div>
+                            </th>
+                            <th style="width: 20%;">
+                                <div><lightning-button label={massSelect} onclick={handleMassSelect} variant="brand"></lightning-button></div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template for:each={accountList} for:item="acc" for:index="index">
+                            <tr key={acc.Id}>
+                                <td>
+                                    {acc.serialNo1}
+                                </td>
+                                <td style="white-space: normal;">
+                                    {acc.Name}
+                                </td>
+                                <td style="white-space: normal;">
+                                    {acc.ShippingStreet} {acc.ShippingCity}, {acc.ShippingState} {acc.ShippingCountry} {acc.ShippingPostalCode}
+                                </td>
+                                <td style="padding-left:4%;">
+                                    <template if:false={acc.isSelected}>
+                                        <span class="slds-media__figure slds-listbox__option-icon">
+                                            <span class="slds-icon_container">
+                                                <lightning-icon icon-name="utility:add" style="outline-style:auto;" size="x-small" data-name="fromAccountList" data-id={acc.Id} data-index={index} onclick={onRecordSelection}></lightning-icon>
+                                            </span>
+                                        </span>
+                                    </template>
+                                    <template if:true={acc.isSelected}>
+                                        <span class="slds-media__figure slds-listbox__option-icon">
+                                            <span class="slds-icon_container">
+                                                <lightning-icon icon-name="utility:delete" size="small" data-id={acc.Id} data-index={index} onclick={onRemovingSelected}></lightning-icon>
+                                            </span>
+                                        </span>
+                                    </template>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </template>
+        <template if:true={switchLayout}>
+            <div>
+                <p style="font-size: medium;font-weight: bold;margin-top:1%;">
+                    Project Account List:
+                </p>
+                <div style="max-height: 290px;overflow: auto;" title="Project Account List">
+                    <table id="table2" class="slds-table slds-table_bordered slds-table_cell-buffer">
+                        <thead>
+                            <tr class="slds-text-title_caps">
+                                <th scope="col" style="text-align: center; width: 2%;"></th>
+                                <th style="width: 30%;">
+                                    <div> Project Account </div>
+                                </th>
+                                <th style="width: 20%;">
+                                    <div><lightning-button label={massSelect2} onclick={handleMassDelete} variant="brand"></lightning-button></div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={projAcctList} for:item="projAcc" for:index="index">
+                                <tr key={projAcc.Id}>
+                                    <td>
+                                        {projAcc.serialNo2}
+                                    </td>
+                                    <td>
+                                        {projAcc.Name}
+                                    </td>
+                                    <td style="padding-left:4%;">
+                                        <template if:false={projAcc.isSelectedToDelete}>
+                                            <span class="slds-media__figure slds-listbox__option-icon">
+                                                <span class="slds-icon_container">
+                                                    <lightning-icon icon-name="utility:add" style="outline-style:auto;" size="x-small" data-name="fromProjAccountList" data-id={projAcc.Id} data-index={index} onclick={onRecordSelection}></lightning-icon>
+                                                </span>
+                                            </span>
+                                        </template>
+                                        <template if:true={projAcc.isSelectedToDelete}>
+                                            <span class="slds-media__figure slds-listbox__option-icon">
+                                                <span class="slds-icon_container">
+                                                    <lightning-icon icon-name="utility:delete" size="small" data-id={projAcc.Id} data-index={index} onclick={onRemovingSelected}></lightning-icon>
+                                                </span>
+                                            </span>
+                                        </template>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </template>
+    </div>
+    <div style="opacity: 1;">
+        <template if:true={isModalOpen}>
+            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <div class="custom-modal-container">
+                        <div class="slds-modal__header" style="background-color: #f1f1ec;">
+                            <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={closeModal}>
+                                <lightning-icon icon-name="utility:close" alternative-text="close" size="x-small"></lightning-icon>
+                                <span class="slds-assistive-text">Close</span>
+                            </button>
+                            <h2 class="slds-text-heading_medium">Processing File...</h2>
+                        </div>
+                        <div class="slds-modal__content slds-p-around_medium">
+                            <table style="width: 100%;">
+                                <tr>
+                                    <td style="width: 40%;">
+                                        <div style="align-items: center;">
+                                            <lightning-icon icon-name="doctype:csv" size="medium"></lightning-icon>
+                                            <p style="margin-left: 40px; margin-top: -20%;">{fileName}</p>
+                                            <p style="margin-left: 40px;">{fileSize}</p>
+                                        </div>
+                                    </td>
+                                    <td style="width: 55%;" if:true={showProgress}>
+                                        <lightning-progress-bar value={uploadProgress} variant="base" label="Upload Progress" style="margin-right: 20px;"></lightning-progress-bar>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center; position: relative; top: -5px;" if:true={showSuccessIcon}>
+                                        <lightning-icon icon-name="utility:success" size="small" class="slds-icon slds-icon-text-success"></lightning-icon>
+                                    </td>                                                                
+                                </tr>
+                            </table>
+                        </div>
+                        <template if:true={showSpinner}>    
+                            <lightning-spinner alternative-text="Loading..." variant="brand" style="display:contents;"></lightning-spinner>
+                        </template>                      
+                        <div class="slds-modal__footer">
+                            <template if:true={showSuccessIcon}>
+                                <lightning-button variant="brand" label="Upload" onclick={uploadFile} class="slds-m-top_medium" disabled={showSpinner}></lightning-button>
+                            </template>
+                            <template if:false={showSuccessIcon}>
+                                <lightning-button variant="brand" label="Upload" onclick={uploadFile} class="slds-m-top_medium" disabled></lightning-button>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </template>
+    </div>
+</template>

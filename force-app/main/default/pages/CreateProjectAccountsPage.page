@@ -1,0 +1,75 @@
+<apex:page standardController="Account" recordSetVar="sobjects" extensions="CreateProjectAccounts">
+    <apex:includeLightning />
+    <apex:slds />
+    <div id="lightning"/>
+<!--
+    <apex:form >
+        <h1><strong>Projects Under This Customer</strong></h1>
+        <apex:selectRadio value="{!selectedOption}" layout="pageDirection">
+            <apex:selectOptions value="{!radioOptions}"/>
+            <apex:actionSupport event="onchange" action="{!null}" rerender="selectedOptionHidden,selectedAccountsPanel"/>
+        </apex:selectRadio>
+        <apex:inputHidden id="selectedOptionHidden" value="{!selectedOption}"/>
+        <apex:commandButton value="Create Project Accounts" action="{!submit}"/>
+    </apex:form>
+
+    <h1><strong>Stores Selected</strong></h1>
+    <apex:outputPanel id="selectedAccountsPanel">
+        <apex:pageBlock >
+            <apex:pageBlockTable value="{!selectedAccounts}" var="acc">
+                <apex:column headerValue="Name">
+                    <apex:outputText value="{!acc.Name}" />
+                </apex:column>
+                <apex:column headerValue="Address">
+                    <apex:outputText value="{!acc.ShippingStreet} {!acc.ShippingCity} {!acc.ShippingState} {!acc.ShippingPostalCode}" />
+                </apex:column>
+                <apex:column >
+                    <button type="button" onclick="deleteAccount('{!acc.Id}');" class="slds-button slds-button_icon slds-button_icon-border-filled" title="Delete">
+                        <svg class="slds-button__icon slds-button__icon_small" aria-hidden="true">
+                            <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Asset.SLDS, 'assets/icons/utility-sprite/svg/symbols.svg#delete')}"></use>
+                        </svg>
+                        <span class="slds-assistive-text">Delete</span>
+                    </button>
+                </apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlock>
+    </apex:outputPanel>
+
+    <apex:outputPanel rendered="{!ISNULL(selectedAccounts)}">
+        <p>No selected accounts found.</p>
+    </apex:outputPanel>
+
+    <!-- JavaScript function 
+    <script>
+        function deleteAccount(accId) {
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.CreateProjectAccounts.deleteAccount}',
+                accId,
+                function(result, event) {
+                    if (event.status) {
+                        console.log('Account deleted successfully:', result);
+                        // Refresh the page after deletion
+                        Visualforce.remoting.Manager.invokeAction(
+                            '{!$RemoteAction.CreateProjectAccounts.getSelectedAccounts}',
+                            function(result, event) {
+                                if (event.status) {
+                                    var panel = document.getElementById('selectedAccountsPanel');
+                                    if (panel) {
+                                        panel.innerHTML = result;
+                                    } else {
+                                        console.error('Panel element not found');
+                                    }
+                                } else {
+                                    console.error('Error refreshing accounts:', event.message);
+                                }
+                            }
+                        );
+                    } else {
+                        console.error('Error deleting account:', event.message);
+                    }
+                }
+            );
+        }
+    </script>
+-->
+</apex:page>

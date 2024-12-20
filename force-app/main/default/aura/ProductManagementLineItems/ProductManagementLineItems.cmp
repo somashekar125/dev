@@ -1,0 +1,625 @@
+<aura:component controller="ProductManagement" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction,lightning:actionOverride" access="global" >
+    <aura:handler name="init" value="{!this}" action="{!c.myAction}"/>
+    <aura:handler name="change" value="{!v.equipmentType}" action="{!c.populateEquipmentType}"/>
+    <aura:handler name="change" value="{!v.problemType}" action="{!c.populateProblemType}"/>
+    <aura:handler name="change" value="{!v.selectedEquipmentType}" action="{!c.populateEquipmentType}"/>
+    <aura:handler name="change" value="{!v.selectedAccount}" action="{!c.populateAccount}"/>
+    <aura:handler name="change" value="{!v.selectedProdId}" action="{!c.handleProdSelect}"/>
+    <!--<aura:handler name="render" value="{!this}" action="{!c.onRender}"/>-->
+    <!--<aura:handler name="oSelectedRecordEvent" event="c:selectedsObjectRecordEvent" action="{!c.handleOutOfScope}"/>-->
+    <aura:attribute name="workOrderOld" type="WorkOrder"/>
+    <aura:attribute name="workOrderNew" type="WorkOrder"/>
+    <aura:attribute name="redHotWO" type="WorkOrder"/>
+    <aura:attribute name="caseRec" type="Case"/>
+    <aura:attribute name="removedServiceProds" type="string"/>
+    <aura:attribute name="accId" type="Id"/>
+    <aura:attribute name="loadSpinner" type="boolean" default="false"/>
+    <aura:attribute name="saveError" type="boolean" default="false"/>
+    <aura:attribute name="saveSuccess" type="boolean" default="false"/>
+    <aura:attribute name="saveMessage" type="string" default=""/>
+    <aura:attribute name="tchNotes" type="string" default=""/>
+    <aura:attribute name="csNotes" type="string" default=""/>
+    <aura:attribute name="supportTeams" type="Support_Team__c[]"/>
+    <aura:attribute name="timezone" type="string" default=""/>
+    <aura:attribute name="createRedHotOrder" type="boolean" default="false"/>
+    <aura:attribute name="caseProducts" type="Case_Product__c[]" default="[]"/>
+    <aura:attribute name="caseRecordTypes" type="RecordType[]" default="[]"/>
+    <aura:attribute name="rootAccountId" type="string" default=""/>
+    <aura:attribute name="serviceContractList" type="ServiceContract[]" default="[]"/>
+    <aura:attribute name="selectedServiceContract" type="ServiceContract" default="{}"/>
+    <aura:attribute name="caseServiceProducts" type="Product2[]" default="[]"/>
+    <aura:attribute name="isdisabled" type="Boolean" default="false"/>
+    <aura:attribute name="disableAddingHardwareProducts" type="Boolean" default="false"/>
+    <aura:attribute name="showServiceTypeDescriptions" type="Boolean" default="false"/>
+    <!--<aura:attribute name="outOfScope" type="Boolean" default="false"/>
+    <aura:attribute name="outOfScopeIcon" type="Boolean" default="false"/>-->
+    <aura:attribute name="accountIdHelpText" type="String"/>
+    <aura:attribute name="serviceTypeHelpText" type="String"/>
+    <aura:attribute name="preferredTimeHelpText" type="String"/>
+    <aura:attribute name="priorityHelpText" type="String"/>
+    <aura:attribute name="posRegisterNumberHelpText" type="String"/>
+    <aura:attribute name="poNumberHelpText" type="String"/>
+    <aura:attribute name="incidentHelpText" type="String"/>
+    <aura:attribute name="supportTeamHelpText" type="String"/>
+    <aura:attribute name="techNotesHelpText" type="String"/>
+    <aura:attribute name="descriptionHelpText" type="String"/>
+    <aura:attribute name="assetNumberHelpText" type="String"/>
+    <aura:attribute name="onsiteContactNameHelpText" type="String"/>
+    <aura:attribute name="includePartHelpText" type="String"/>
+    <aura:attribute name="departmentHelpText" type="String"/>
+    <aura:attribute name="equipmentTypeHelpText" type="String"/>
+    <aura:attribute name="problemTypeHelpText" type="String"/>
+    <aura:attribute name="selectedTemplate" type="String"/>
+    <aura:attribute name="caseTemplates" type="CaseTemplate__c" default="{}"/>
+    <aura:attribute name="newTemplateName" type="String"/>
+    <aura:attribute name="saveTemplate" type="Boolean" default="false"/>
+    <aura:attribute name="multipleStoreSection" type="Boolean" default="false"/>
+    <aura:attribute name="selectedStoreId" type="string" default=""/>
+    <aura:attribute name="multipleStoreSelectionIsDone" type="Boolean" default="false"/>
+    <aura:attribute name="addedStores" type="Account[]"/>
+    <aura:attribute name="caseList" type="Case[]"/>
+    <aura:attribute name="isCUB" type="Boolean" default="false"/>
+    <aura:attribute name="caseDepartments" type="String[]"/>
+    <aura:attribute name="problemtTypeId" type="String"/>
+    <aura:attribute name="equipmentType" type="Equipment_Type__c" default="{ sobjectType: 'Equipment_Type__c' }"/>
+    <aura:attribute name="problemType" type="Equipment_Type__c" default="{ sobjectType: 'Equipment_Type__c' }"/>
+    <aura:attribute name="productGroupingId" type="String"/>
+    <aura:attribute name="equipmentTypeList" type="String[]"/>
+    <aura:attribute name="problemTypeList" type="String[]"/>
+    <aura:attribute name="equipmentTypeName" type="String"/>
+    <aura:attribute name="problemTypeName" type="String"/>
+    <aura:attribute name="hardwareRootAccountId" type="String"/>
+    <aura:attribute name="defaultServiceType" type="String"/>
+    <aura:attribute name="equipmentTypeNameList" type="String[]"/>
+    <aura:attribute name="accountNameList" type="String[]"/>
+    <aura:attribute name="accountList" type="Account[]"/>
+    <aura:attribute name="equipmentTypeNameOptions" type="List" default="{!v.equipmentTypeNameList}" />
+    <aura:attribute name="accountNameOptions" type="List" default="{!v.accountNameList}" />
+    <aura:attribute name="selectedEquipmentType" type="String" default="" description="Selected equipment type value in single Select" />
+    <aura:attribute name="selectedAccount" type="String" default="" description="Selected Account value in single Select" />
+    <aura:attribute name="toMark" type="Boolean" default="true"/>
+    <aura:attribute name="selectedProdId" type="string" default=""/>
+
+    <aura:if isTrue="{!v.loadSpinner}">
+        <div class="slds-is-relative">
+            <lightning:spinner variant="brand" size="large"/>
+        </div>
+    </aura:if>
+    <ltng:require styles="{!$Resource.ModalWidthPortal}"/>
+    <aura:if isTrue="{!v.showServiceTypeDescriptions}">
+        <!-- Modal/Popup Box starts here-->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container" style="width:100% !important;">
+                <!-- Modal/Popup Box Header Starts here-->
+                <header class="slds-modal__header">
+                    <aura:if isTrue="{!v.showServiceTypeDescriptions}">
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">All Service Types Information</h2>
+                    </aura:if>
+                </header>
+                <!--Modal/Popup Box Body Starts here-->
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1" style="height:100%;">
+                    <aura:if isTrue="{!v.showServiceTypeDescriptions}">
+                        <table style="width:100%;border: 1px;font-family: Calibri;" cellspacing = "0">
+                            <tr><th style="background-color: #f2f2f2;border: 1px solid #ddd;text-align: left;padding: 6px;">Service Type</th>
+                                <th style="background-color: #f2f2f2;border: 1px solid #ddd;text-align: left;padding: 6px;">Description</th>
+                                <th style="background-color: #f2f2f2;border: 1px solid #ddd;text-align: left;padding: 6px;">Select Service Type</th>
+                            </tr>
+                            <aura:iteration items="{!v.serviceContractList}" var="st" indexVar="index">
+                                <tr>
+                                    <aura:if isTrue="{!or(st.Service_Type__c == 'Advance Exchange (Depot Only)',st.Service_Type__c == 'Advance Exchange + Onsite')}">
+                                        <aura:if isTrue="{!st.Service_Type__c == 'Advance Exchange (Depot Only)'}">
+                                            <td style="border: 1px solid #ddd;text-align: left;padding: 3px;">Part Request</td>
+                                        </aura:if>
+                                        <aura:if isTrue="{!st.Service_Type__c == 'Advance Exchange + Onsite'}">
+                                            <td style="border: 1px solid #ddd;text-align: left;padding: 3px;">Part + Onsite</td>
+                                        </aura:if>
+                                        <aura:set attribute="else">
+                                            <td style="border: 1px solid #ddd;text-align: left;padding: 3px;">{!st.Service_Type__c}</td>
+                                        </aura:set>
+                                    </aura:if>
+                                    <td style="border: 1px solid #ddd;text-align: left;padding: 3px;">{!st.Description}</td>
+                                    <td style="border: 1px solid #ddd;text-align: left;padding: 3px;" id="{!index}">
+                                        <lightning:button variant="base" label="Select" onclick="{!c.settingServiceType}"/>
+                                    </td>
+                                </tr>
+                            </aura:iteration>
+                        </table>
+                    </aura:if>
+                </div>
+                <!--Modal/Popup Box Footer Starts here-->
+                <footer class="slds-modal__footer">
+                    <aura:if isTrue="{!v.showServiceTypeDescriptions}">
+                        <lightning:button variant="neutral" label="Close" title="Close" onclick="{! c.closeServiceDescriptionBox }"/>
+                    </aura:if>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if>
+    <!--<aura:if isTrue="{!v.outOfScope}">
+        <!- Modal/Popup Box starts here->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container" style="margin-top: 10%;">
+                <!-Modal/Popup Box Header Starts here->
+                <header class="slds-modal__header">
+                    <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">OUT OF SCOPE ALERT</h2>
+                </header>
+                <!-Modal/Popup Box Body Starts here->
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1" style="height:100%;">
+                    <p style="font-size: large;"> 
+                        <lightning:icon class="iconColor" iconName="utility:warning" size="x-small" variant="inverse"/>
+                        This Case will be considered as 'Out of Scope' as you have selected product(s) which is not part of SOW.
+                    </p>
+                </div>
+                <!-Modal/Popup Box Footer Starts here->
+                <footer class="slds-modal__footer">
+                    <lightning:button variant="neutral" label="Close" title="Close" onclick="{! c.closeOutOfScopeAlert }"/>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if>-->
+    
+    <!--<aura:if isTrue="{!v.saveTemplate}">
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container" style="margin-top: 10%;">
+                <header class="slds-modal__header">
+                    <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Creating Case Template</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1" style="height:100%;">
+                    <lightning:input type="text" name="templateName" label="" variant="label-hidden" value="{!v.newTemplateName}" placeholder = "Enter Template Name"/>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning:button variant="neutral" label="Cancel" title="Cancel" onclick="{! c.cancelSavingTemplate }"/>
+                    <lightning:button variant="brand" label="Save" title="Save" onclick="{!c.createCaseTemplate}"/>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if>
+    <aura:if isTrue="{!v.multipleStoreSection}">
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container" style="margin-top: 10%;">
+                <header class="slds-modal__header">
+                    <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Select Multiple Stores</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1" style="height:100%;">
+                    <lightning:recordEditForm objectApiName="Case">
+                        <lightning:inputField onchange="{!c.addSelectedStore}" variant="label-hidden" aura:id="ChildAccountId" fieldName="Store__c" value="{!v.selectedStoreId}" placeholder = "Search"/>
+                    </lightning:recordEditForm>
+                    <div class="slds-m-vertical_medium">
+                        <p>Added Stores: <span class="slds-text-heading_small"></span></p>
+                        <div class="bordercolor">
+                            <aura:iteration items="{!v.addedStores}" var="acc" indexVar="index">
+                                <lightning:pill title="{!index}" label="{!acc.Name}" onremove="{!c.removeStore}"></lightning:pill>
+                            </aura:iteration>
+                        </div>
+                    </div>
+                </div>
+                <footer class="slds-modal__footer">
+                    <span style="float: left;">
+                        <lightning:button variant="neutral" label="Cancel" title="Cancel" onclick="{! c.cancelMultipleStoreSelection}"/>
+                    </span>
+                    <span style="float: left;margin-left: 1%;">
+                        <lightning:button variant="brand" label="Reset Store List" class="labelColor" title="Reset Store List" onclick="{!c.resetStoreList}"/>
+                    </span>
+                    <lightning:button variant="brand" label="Save" class="labelColor" title="Save" onclick="{!c.saveMultipleStoreSelected}"/>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if>-->
+    
+    <aura:if isTrue="{!v.saveError}">
+        <ui:message title="Error!" severity="error" closable="true">
+            <ui:outputRichText value="{!v.saveMessage}"/>
+        </ui:message>
+    </aura:if>
+    <aura:if isTrue="{!v.saveSuccess}">
+        <ui:message title="Success!" severity="confirm" closable="true">
+            <ui:outputRichText value="{!v.saveMessage}"/>
+        </ui:message>
+    </aura:if>
+    
+    <!--<table class="slds-section slds-is-open" style="background-color:white;width:100% !important">
+        <tr>
+            <td style="padding-top: 1%">
+                <lightning:button variant="brand" class="labelColor" label="Raise this ticket for multiple stores" title="Multiple Accounts" onclick="{! c.selectStores}"/>
+            </td>
+            <td style="float: right;">
+                <lightning:select label="" variant="label-hidden" class="caseTemplates" onchange="{!c.setCaseTemplate}" value="{!v.selectedTemplate}">
+                    <option value="">-Select Template-</option>
+                    <aura:iteration items="{!v.caseTemplates}" var="template">
+                        <option value="{!template.Name}">{!template.Name}</option>
+                    </aura:iteration>
+                </lightning:select>
+            </td>
+        </tr>
+    </table>-->
+    <div style="height: 855px;overflow-y: auto;">
+        <table class="slds-section slds-is-open" style="height: 800px;background-color:white;width:100% !important">
+            <div>
+                <tr>
+                    <td style = "width:40%;padding-right: 1rem;">
+                        <div style="height: 790px;overflow-x: hidden; overflow-y: auto !important">
+                            <lightning:recordEditForm objectApiName="Case">
+                                <div style = "display:flex">
+                                    <span style = "width: 97%;">
+                                        <aura:if isTrue="{!!v.multipleStoreSelectionIsDone}">
+                                            <aura:if isTrue="{!!v.isCUB}">
+                                                <lightning:inputField onchange="{!c.addAccInCases}" variant="label-hidden" disabled="{!or(v.workOrderOld != null, v.createRedHotOrder)}" aura:id="AccountId" fieldName="Store__c" value="{!v.accId}" placeholder = "Search Account..." required = "true"/>
+                                                <aura:set attribute="else">
+                                                    <c:SearchablePickList options="{!v.accountNameOptions}" value="{!v.selectedAccount}" label="" placeholder = "Search Account.."/>
+                                                </aura:set>
+                                            </aura:if>
+                                        </aura:if>
+                                        <!--<aura:if isTrue="{!v.multipleStoreSelectionIsDone}">
+                                            <lightning:button variant="brand" label="Multiple stores are selected" class="labelColor" title="Multiple stores are selected" onclick="{!c.selectStores}"/>
+                                        </aura:if>-->
+                                    </span>
+                                    <span  style = "width: 3%;">
+                                        <aura:if isTrue = "{!and(v.accountIdHelpText != null,v.multipleStoreSelectionIsDone == false)}">
+                                            <lightning:helptext content="{!v.accountIdHelpText}" iconName = "utility:info"/>
+                                        </aura:if>
+                                    </span>
+                                </div>
+                                <br></br>
+                                <div style="margin-top:-1%">
+                                    <div style = "display:flex;">
+                                        <span style="width: 50%;">
+                                            <div style = "display:flex;">
+                                                <span style = "width: 94%;">
+                                                    <lightning:select label="" variant="label-hidden" class="servRequid" onchange="{!c.handleServiceType}" value="{!v.caseRec.Service_Type__c}">
+                                                        <option value="">-- Select Service Type --</option>
+                                                        <aura:iteration items="{!v.serviceContractList}" var="st">
+                                                            <aura:if isTrue="{!or(st.Service_Type__c == 'Advance Exchange (Depot Only)', st.Service_Type__c == 'Advance Exchange + Onsite')}">
+                                                                <aura:if isTrue="{!st.Service_Type__c == 'Advance Exchange (Depot Only)'}">
+                                                                    <option value="Advance Exchange (Depot Only)" selected="{!v.defaultServiceType == 'Advance Exchange (Depot Only)'}">Part Request</option>
+                                                                </aura:if>
+                                                                <aura:if isTrue="{!st.Service_Type__c == 'Advance Exchange + Onsite'}">
+                                                                    <option value="Advance Exchange + Onsite" selected="{!v.defaultServiceType == 'Advance Exchange + Onsite'}">Part + Onsite</option>
+                                                                </aura:if>
+                                                                <aura:set attribute="else">
+                                                                    <option value="{!st.Service_Type__c}" selected="{!v.defaultServiceType == st.Service_Type__c}">{!st.Service_Type__c}</option>
+                                                                </aura:set>
+                                                            </aura:if>
+                                                        </aura:iteration>
+                                                    </lightning:select>
+                                                </span>
+                                                <span style = "width: 6%;">
+                                                    <aura:if isTrue = "{!v.serviceTypeHelpText != null}">
+                                                        <lightning:helptext content="{!v.serviceTypeHelpText}" iconName = "utility:info"/>
+                                                    </aura:if>
+                                                </span>
+                                            </div>
+                                        </span>
+                                        <span style="width: 50%;">
+                                            <div style="display: flex; align-items: center;">
+                                                <span style="width: 94%; padding-left: 1%;">
+                                                    <lightning:select label="" variant="label-hidden" class="servRequid" value="{!v.caseRec.Priority}">
+                                                        
+                                                        <option aura:id="severitySelect" value="">-- Select Priority --</option>
+                                                        <option aura:id="severity1" value="Severity 1">Severity 1</option>
+                                                        <option aura:id="severity2" value="Severity 2">Severity 2</option>
+                                                        <option aura:id="severity3" value="Severity 3">Severity 3</option>
+                                                        <option aura:id="severity4" value="Severity 4">Severity 4</option>
+                                                        <option aura:id="severity5" value="Severity 5">Severity 5</option>
+                                                        <option aura:id="severity6" value="Severity 6">Severity 6</option>
+                                                        <option aura:id="severity7" value="Critical - Saturday">Critical - Saturday</option>
+                                                    </lightning:select>
+                                                </span>
+                                                <span style="width: 3%; margin-top: 1%;">
+                                                    <aura:if isTrue="{!v.priorityHelpText != null}">
+                                                        <lightning:helptext content="{!v.priorityHelpText}" iconName="utility:info"/>
+                                                    </aura:if>
+                                                </span>
+                                            </div>
+                                        </span>
+                                    </div>
+                                    <label>
+                                        <a onclick="{!c.serviceTypeDescriptions}">CLICK HERE</a> to view the description of each Service Type.
+                                    </label>
+                                </div>
+                                <aura:if isTrue="{!v.isCUB}">
+                                    <div style="display: flex; align-items: center;margin-top:-1%">
+                                        <span style="width:97%;">
+                                            <lightning:select label="" variant="label-hidden" class="department" value="{!v.caseRec.Department2__c}">
+                                                <option value="">-- Select Department --</option>
+                                                <aura:iteration items="{!v.caseDepartments}" var="dept">
+                                                    <option value="{!dept}">{!dept}</option>
+                                                </aura:iteration>
+                                            </lightning:select>
+                                        </span>
+                                        <span style="width: 3%; margin-top: 1%;">
+                                            <aura:if isTrue = "{!v.departmentHelpText != null}">
+                                                <lightning:helptext content="{!v.departmentHelpText}" iconName = "utility:info"/>
+                                            </aura:if>
+                                        </span>
+                                    </div>
+                                    <div style="display: flex;text-align:center;">
+                                        <span style="width: 101%;margin-top: 3%;margin-left: -1.8%;" class="slds-p-horizontal_small">
+                                            <c:SearchablePickList options="{!v.equipmentTypeNameOptions}" value="{!v.selectedEquipmentType}" label="" placeholder = "Search Equipment Type.."/>
+                                        </span>
+                                        <span style="width: 3%;margin-top:3%;margin-left: -2%;">
+                                            <aura:if isTrue = "{!v.equipmentTypeHelpText != null}">
+                                                <lightning:helptext content="{!v.equipmentTypeHelpText}" iconName = "utility:info"/>
+                                            </aura:if>
+                                        </span>
+                                    </div>
+                                    <div style="display: flex;">
+                                        <span style="width: 97%;">
+                                            <lightning:select label="" variant="label-hidden" class="problemTypes" onchange="{!c.populateProblemType}" value="{!v.problemTypeName}">
+                                                <option value="">-- Select Problem Type --</option>
+                                                <aura:iteration items="{!v.problemTypeList}" var="pt">
+                                                    <option value="{!pt.Name}">{!pt.Name}</option>
+                                                </aura:iteration>
+                                            </lightning:select>
+                                        </span>
+                                        <span style="width: 3%;margin-top:3%;">
+                                            <aura:if isTrue = "{!v.problemTypeHelpText != null}">
+                                                <lightning:helptext content="{!v.problemTypeHelpText}" iconName = "utility:info"/>
+                                            </aura:if>
+                                        </span>
+                                    </div>
+                                </aura:if>
+                                <aura:if isTrue="{!and(v.selectedServiceContract.Schedulable__c,v.selectedServiceContract.Create_Work_Order_For__c == 'Service Contract')}">
+                                    <div style="margin-top: 2%;">
+                                        <span style = "font-size: inherit;">Preferred Time</span>
+                                        <div style = "display: flex;">
+                                            <span class="prefTime" style="width: 97%;">
+                                                <lightning:input type="datetime" name="input2" onchange="{!c.setPriority}" label="" variant="label-hidden" value="{!v.caseRec.Preferred_Time__c}"/>
+                                            </span>
+                                            <span style="width: 3%;">
+                                                <aura:if isTrue = "{!v.preferredTimeHelpText != null}">
+                                                    <lightning:helptext content="{!v.preferredTimeHelpText}" iconName = "utility:info"/>
+                                                </aura:if>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </aura:if>
+                                <aura:if isTrue="{!v.caseRec.Service_Type__c != 'Part Return'}">
+                                    <div style = "display:flex;align-items: center;">
+                                        <span style = "width: 47%;">
+                                            <lightning:input  type = 'text' value="{!v.caseRec.POS_Register_Number__c}" placeholder = "POS Register Number"/>
+                                        </span>
+                                        <span style="width: 3%;margin-top: 2%;">
+                                            <aura:if isTrue = "{!v.posRegisterNumberHelpText != null}">
+                                                <lightning:helptext content="{!v.posRegisterNumberHelpText}" iconName = "utility:info"/>
+                                            </aura:if>
+                                        </span>
+                                        <span style = "width: 47%;padding-left:1%;">
+                                            <lightning:input type = "text" value="{!v.caseRec.Asset_Number__c}" placeholder="Serial Number"/>
+                                        </span>
+                                        <span style="width: 3%;margin-top: 2%;">
+                                            <aura:if isTrue = "{!v.assetNumberHelpText != null}">
+                                                <lightning:helptext content="{!v.assetNumberHelpText}" iconName = "utility:info"/>
+                                            </aura:if>
+                                        </span>
+                                    </div>
+                                </aura:if>
+                                <div style = "display:flex;align-items: center;">
+                                    <span style = "width: 47%;">
+                                        <lightning:input type = 'text' value="{!v.caseRec.PO_Number__c}" placeholder = "PO Number"/>
+                                    </span>
+                                    <span style="width: 3%;margin-top: 2%;">
+                                        <aura:if isTrue = "{!v.poNumberHelpText != null}">
+                                            <lightning:helptext content="{!v.poNumberHelpText}" iconName = "utility:info"/>
+                                        </aura:if>
+                                    </span>
+                                    <span style = "width: 47%;padding-left:1%;">
+                                        <lightning:input type = 'text' value="{!v.caseRec.Incident__c}" placeholder = "Incident #"/>
+                                    </span>
+                                    <span style="width: 3%;margin-top: 2%;">
+                                        <aura:if isTrue = "{!v.incidentHelpText != null}">
+                                            <lightning:helptext content="{!v.incidentHelpText}" iconName = "utility:info"/>
+                                        </aura:if>
+                                    </span>
+                                </div>
+                                <div style = "display:flex;align-items: center;">
+                                    <span style = "width: 97%;">
+                                        <lightning:textarea name="Description" value="{!v.csNotes}" placeholder="Description" onchange = "{!c.enterNotes}"/>
+                                    </span>
+                                    <span style="width: 3%;">
+                                        <aura:if isTrue = "{!v.descriptionHelpText != null}">
+                                            <lightning:helptext content="{!v.descriptionHelpText}" iconName = "utility:info"/>
+                                        </aura:if>
+                                    </span>
+                                </div>
+                                <br></br>
+                                <div style = "display:flex">
+                                    <span style = "width: 97%;">
+                                        <lightning:select class="servRequid" variant="label-hidden" onchange="{!c.setTechNotes}" value="{!v.caseRec.Support_Team__c}">
+                                            <option value="">-- Select Support Team --</option>
+                                            <aura:iteration items="{!v.supportTeams}" var="st">
+                                                <option value="{!st.Id}"  selected="{!st.Id==v.caseRec.Support_Team__c}">{!st.Name}</option>
+                                            </aura:iteration>
+                                        </lightning:select>
+                                    </span>
+                                    <span style="width: 3%;">
+                                        <aura:if isTrue = "{!v.supportTeamHelpText != null}">
+                                            <lightning:helptext content="{!v.supportTeamHelpText}" iconName = "utility:info"/>
+                                        </aura:if>
+                                    </span>
+                                </div>
+                                <div style = "display:flex;align-items: center;">
+                                    <span style = "width: 97%;">
+                                        <lightning:input type = "text" value="{!v.caseRec.Onsite_Contact_Name__c}" placeholder="Onsite Contact Name"/>
+                                    </span>
+                                    <span style="width: 3%;">
+                                        <aura:if isTrue = "{!v.onsiteContactNameHelpText != null}">
+                                            <lightning:helptext content="{!v.onsiteContactNameHelpText}" iconName = "utility:info"/>
+                                        </aura:if>
+                                    </span>
+                                </div>
+                                <aura:if isTrue="{!v.caseRec.Service_Type__c != 'Advance Exchange (Depot Only)'}">
+                                    <br></br>
+                                    <div style = "display:flex;align-items: center;">
+                                        <span style="width: 65vh;">
+                                            <lightning:inputRichText value="{!v.tchNotes}" placeholder="Tech Notes" onblur = "{!c.enterTechNotes}"/>
+                                        </span>
+                                        <span style="width: 3%;">
+                                            <aura:if isTrue = "{!v.techNotesHelpText != null}">
+                                                <lightning:helptext content="{!v.techNotesHelpText}" iconName = "utility:info"/> 
+                                            </aura:if>
+                                        </span>
+                                    </div>                                
+                                </aura:if>
+                                <aura:if isTrue="{!v.selectedServiceContract.Include_Part__c == true}">
+                                    <br></br>
+                                    <div style = "display:flex;align-items: end;">
+                                        <span style = "font-size: inherit;padding-left: 1%;padding-right: 1%;">Include Part</span>
+                                        <lightning:input type="checkbox" variant="label-hidden" onchange="{!c.partPriorityToSev2}" checked="{!v.caseRec.Include_Part__c}"/>
+                                        <aura:if isTrue = "{!v.includePartHelpText != null}">
+                                            <lightning:helptext content="{!v.includePartHelpText}" iconName = "utility:info"/>
+                                        </aura:if>
+                                    </div>
+                                </aura:if>
+                            </lightning:recordEditForm>
+                        </div>
+                    </td>
+                    <td style = "width:1%;border-left:5px solid rgb(66, 128, 252)"></td>
+                    <td style = "width:59%;padding-left: 1rem;">
+                        <div aura:id = "productContainer" style="height: 790px; overflow-y: auto;">
+                            <table>
+                                <tr style = "position: relative;z-index: 1 !important">
+                                    <lightning:tabset selectedTabId="hardwareProducts" aura:id = "prodctsTabSet">
+                                        <lightning:tab label="Hardware Products" id="hardwareProducts" tabindex="0">
+                                            <table class="slds-table slds-table_bordered slds-table_striped slds-table_fixed-layout records-table" id="prodTable">
+                                                <thead>
+                                                    <tr class="slds-text-title_caps">
+                                                        <th style="width: 2%;"></th>
+                                                        <th style="width: 25%;">
+                                                            <div class="slds-truncate">Product</div>
+                                                        </th>
+                                                        <aura:if isTrue="{!v.caseRec.Service_Type__c == 'Part Return'}">
+                                                            <th style="width: 10%;">
+                                                                <div>
+                                                                    <span class="slds-truncate" style="vertical-align: super;">Serial Number
+                                                                        <lightning:helptext class="displayHelper" content="If there are multiple serial numbers, please add them separated by comma."/></span> 
+                                                                </div>
+                                                            </th>
+                                                        </aura:if>
+                                                        <th style="width: 5%;"> 
+                                                            <div class="slds-truncate">Quantity</div>
+                                                        </th>
+                                                        <th style="width: 2%;"></th>
+                                                    </tr> 
+                                                </thead>
+                                                <tbody>
+                                                    <aura:if isTrue="{!v.disableAddingHardwareProducts == false}">
+                                                        <aura:iteration items="{!v.caseProducts}" var="cp" indexVar="index">
+                                                            <tr>
+                                                                <td class="slds-truncate">
+                                                                    {!index + 1}.
+                                                                </td>
+                                                                <td class="slds-truncate" style="overflow:visible; width: 25%;">
+                                                                    <lightning:recordEditForm objectApiName="Case">
+                                                                        <c:customLookup aura:id="childCmp" objectAPIName="product2Hardware" IconName="{!cp.Subject}" rootAccountId="{!v.rootAccountId}" hwRootAccountId="{!v.hardwareRootAccountId}" 
+                                                                                        selectedProdId="{!v.selectedProdId}" selectedRecord="{!cp.customProductLookup}" placeHolder = "Search Products..." label=""/>
+                                                                    </lightning:recordEditForm>
+                                                                </td>
+                                                                <aura:if isTrue="{!v.caseRec.Service_Type__c == 'Part Return'}">
+                                                                    <td class="slds-truncate" style="width: 10%;">
+                                                                        <lightning:recordEditForm objectApiName="Case_Product__c">
+                                                                            <lightning:inputField fieldName="Serial_Number__c" variant="label-hidden" value="{!cp.Serial_Number__c}"/>
+                                                                        </lightning:recordEditForm>
+                                                                    </td>
+                                                                </aura:if>
+                                                                <td class="slds-truncate" style="width: 5%;">
+                                                                    <lightning:recordEditForm objectApiName="Case_Product__c">
+                                                                        <lightning:inputField fieldName="Quantity__c" variant="label-hidden" value="{!cp.Quantity__c}"/>
+                                                                    </lightning:recordEditForm>
+                                                                </td>
+                                                                <td>
+                                                                    <a id="{!index}" name = "remove" onclick="{!c.removeProduct}">
+                                                                        <lightning:icon iconName="utility:close" size="x-small" alternativeText="Remove" title="Remove" />
+                                                                    </a>
+                                                                </td>
+                                                            </tr>
+                                                        </aura:iteration>
+                                                    </aura:if>
+                                                </tbody>
+                                            </table>
+                                        </lightning:tab>
+                                        <aura:if isTrue="{!v.selectedServiceContract.Show_CLIs_As_Service_Products__c}">
+                                            <lightning:tab label="Service Products" id="serviceProducts" tabindex="1">
+                                                <table class="slds-table slds-table_bordered slds-table_striped slds-table_fixed-layout records-table"> 
+                                                    <thead> 
+                                                        <tr class="slds-text-title_caps"> 
+                                                            <th style="width: 4%;"></th>
+                                                            <th style="width: 52%;"> 
+                                                                <div class="slds-truncate">Product</div> 
+                                                            </th>
+                                                            <th style="width: 40%;"> 
+                                                                <aura:if isTrue="{!and(v.selectedServiceContract.Schedulable__c,v.selectedServiceContract.Create_Work_Order_For__c == 'Contract Line Item')}">
+                                                                    <div class="slds-truncate">Preferred Time</div> 
+                                                                </aura:if>
+                                                            </th>
+                                                            <th style="width: 4%;"></th>
+                                                        </tr> 
+                                                    </thead> 
+                                                    <tbody> 
+                                                        <aura:iteration items="{!v.caseServiceProducts}" var="sp" indexVar="index">
+                                                            <aura:if isTrue="{!sp.Family == 'Service'}">
+                                                                <tr style="height: 45px;"> 
+                                                                    <td style="width: 4%;height: inherit;">
+                                                                        {!index + 1}.
+                                                                    </td>
+                                                                    <td class="slds-truncate" style="overflow:visible;width: 52%;white-space: normal;height: inherit;"> 
+                                                                        {!sp.Name}
+                                                                    </td>
+                                                                    <td class="slds-truncate" style="width:40%;height: inherit;">
+                                                                        <aura:if isTrue="{!and(v.selectedServiceContract.Schedulable__c,v.selectedServiceContract.Create_Work_Order_For__c == 'Contract Line Item')}">
+                                                                            <lightning:recordEditForm objectApiName="Case_Product__c">
+                                                                                <lightning:inputField fieldName="Preferred_Time__c" variant="label-hidden" required = 'true' value="{!sp.Dummy_Preferred_Time__c}"/>
+                                                                            </lightning:recordEditForm>
+                                                                        </aura:if>
+                                                                    </td>
+                                                                    <td style="width: 4%;height: inherit;">
+                                                                        <a id="{!index}" name="{!sp.Id}" onclick="{!c.removeServiceProduct}">
+                                                                            <lightning:icon iconName="utility:close" size="x-small" alternativeText="Remove" title="Remove"/>
+                                                                        </a>
+                                                                    </td>
+                                                                </tr>
+                                                            </aura:if>
+                                                        </aura:iteration> 
+                                                    </tbody> 
+                                                </table>
+                                            </lightning:tab>
+                                        </aura:if>
+                                    </lightning:tabset>
+                                </tr>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+            </div>
+            <div style="text-align:center;height:40px;margin-top: 1%;">
+                <span style="margin-right: 80px;">
+                    <lightning:button variant="brand-outline" label="Cancel" title="Cancel action" onclick="{! c.closeCaseForm }"/>
+                </span>
+                <span style="margin-right: 80px;">
+                    <aura:if isTrue="{!v.disableAddingHardwareProducts == false}">
+                        <aura:if isTrue="{!and(v.workOrderOld == null, !v.createRedHotOrder)}">
+                            <lightning:button variant="brand" class="labelColor" label="Add Product" title="Add Product action" onclick="{! c.addProductLines }"/>
+                        </aura:if>
+                    </aura:if>
+                </span>
+                <!--<span style="margin-right: 80px;">
+                    <lightning:button variant="brand" class="labelColor" label="Create Template" title="Create Template action" onclick="{! c.saveThisTemplate }"/>
+                </span>-->
+                <!--<aura:if isTrue="{!v.outOfScopeIcon}">
+                    <span style="margin-right: 1%;z-index: 0;position: relative;">
+                        <lightning:helptext class="outOfScopeIcon"
+                            content="This Case will be considered as 'Out of Scope' as you have selected product(s) which is not part of SOW."
+                            iconName="utility:warning"
+                        />
+                    </span>
+                </aura:if>-->
+                <span>
+                    <lightning:button variant="brand" label="Submit" class="labelColor" title="Submit action" onclick="{! c.saveRecords }" disabled="{!v.isdisabled}"/>
+                </span>
+            </div>
+        </table>
+    </div>
+</aura:component>

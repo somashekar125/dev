@@ -1,0 +1,5 @@
+<design:component>
+	<design:attribute name="recordId" label="woliId"/>
+	<design:attribute name="multipleFiles" label="multipleFiles"/>
+	<design:attribute name="inspectType" label="inspectType"/>
+</design:component>

@@ -1,0 +1,308 @@
+@isTest
+public class ProductManagementInternalTest {
+    @testSetup static void setup() {
+        Global_Settings__c gs = TestDataFactory.CreateGlobalSettings();
+        insert gs;
+        
+        Account rootAcc = TestDataFactory.createAccount();
+        rootAcc.Name = 'United Natural Foods';
+        rootAcc.Source_Key__c = '234';
+        insert rootAcc;
+        
+        List<Account> accList = new List<Account>();
+        Account acc = TestDataFactory.createAccount();
+        acc.Root_Account__c = rootAcc.Id;
+        acc.ParentId = rootAcc.Id;
+        accList.add(acc);
+        Account acc2 = TestDataFactory.createAccount();
+        acc2.ShippingState = 'Canada';
+        acc2.Source_Key__c = '1865';
+        accList.add(acc2);
+        Account acc3 = TestDataFactory.createAccount();
+        acc3.ParentId = rootAcc.Id;
+        acc3.Root_Account__c = rootAcc.Id;
+        acc3.Name = 'CUB Foods';
+        acc3.Source_Key__c = '18675';
+        accList.add(acc3);
+        insert accList;
+        
+        Entitlement etl = new Entitlement();
+        etl.Name = 'Test Entitlement';
+        etl.Type = 'Onsite IMAC';
+        etl.AccountId = accList[0].Id;
+        insert etl;
+        
+        CaseTemplate__c ct = new CaseTemplate__c();
+        ct.Name = 'Template 1';
+        ct.Root_Account__c = rootAcc.Id;
+        ct.Template__c = 'Test';
+        insert ct;
+        
+        List<ServiceContract> scList = new List<ServiceContract>();
+        ServiceContract sc = TestDataFactory.createServiceContract(accList[0]);
+        scList.add(sc);
+        ServiceContract sc1 = TestDataFactory.createServiceContract(accList[0]);
+        sc1.Service_Type__c = 'Onsite IMAC';
+        scList.add(sc1);
+        ServiceContract sc2 = TestDataFactory.createServiceContract(accList[0]);
+        sc2.Service_Type__c = 'Onsite Labor Only';
+        scList.add(sc2);
+        insert scList;
+        ServiceContract childSC = TestDataFactory.createServiceContract(accList[0]);
+        childSC.Service_Type__c = 'Onsite IMAC';
+        childSC.ParentServiceContractId = scList[0].Id;
+        insert childSC;
+        
+        List<Case> csList = new List<Case>();
+        Case cs = TestDataFactory.createCase(accList[0], scList[0]);
+        csList.add(cs);
+        Case cs2 = TestDataFactory.createCase(accList[0], scList[1]);
+        cs2.Service_Type__c = 'Onsite IMAC';
+        csList.add(cs2);
+        insert csList;
+        List<WorkOrder> woList = new List<WorkOrder>();
+        WorkOrder wo = TestDataFactory.createWorkOrder(csList[0], scList[0],accList[0]);
+        woList.add(wo);
+        WorkOrder wo2 = TestDataFactory.createWorkOrder(csList[1], scList[1], accList[0]);
+        woList.add(wo2);
+        insert woList;
+        
+        List<Product2> prodList = new List<Product2>();
+        Product2 prod = TestDataFactory.createProduct2(accList[0]);
+        prod.Handling_Code__c = 'Consumable';
+        prodList.add(prod);
+        Product2 prod2 = TestDataFactory.createProduct2(accList[0]);
+        prod2.Name = 'TesProduct';
+        prod2.Source_Key__c = '22222';
+        prodList.add(prod2);
+        Product2 prod3 = TestDataFactory.createProduct2(accList[0]);
+        prod3.Name = 'TestProduct';
+        prod3.Source_Key__c = '212';
+        prod3.Family = 'Service';
+        prodList.add(prod3);
+        insert prodList;
+        
+        List<Case_Product__c> cpList = new List<Case_Product__c>();
+        Case_Product__c cp = new Case_Product__c();
+        cp.Name = 'Test Product';
+        cp.Product__c = prod.Id;
+        cp.Case__c = csList[0].Id;
+        cp.Quantity__c = 2;
+        cpList.add(cp);
+        Case_Product__c cp2 = new Case_Product__c();
+        cp2.Name = prod.Name + 'Testte stet setetsetset setsetsetse tsetse ttestsetsetsetsetse tsets etsetse';
+        cp2.Product__c = prod.Id;
+        cp2.Case__c = csList[0].Id;
+        cp2.Quantity__c = 2;
+        cpList.add(cp2);
+        
+        List<Product_Bundle__c> bundleProdList = new List<Product_Bundle__c>();
+        Product_Bundle__c pb = TestDataFactory.createProductBundle(prodList);
+        bundleProdList.add(pb);
+        insert bundleProdList;
+        
+        List<PricebookEntry> pbeList = new List<PricebookEntry>();
+        PricebookEntry standardPrice = TestDataFactory.createPricebookEntry(prod);
+        pbeList.add(standardPrice);
+        PricebookEntry standardPrice2 = TestDataFactory.createPricebookEntry(prod2);
+        pbeList.add(standardPrice2);
+        PricebookEntry standardPrice3 = TestDataFactory.createPricebookEntry(prod3);
+        pbeList.add(standardPrice3);
+        insert pbeList;
+        
+        Shipment s = new Shipment();
+        s.ShipToName = 'test';
+        insert s;
+        Schema.Location loc = new Schema.Location(Name='IWCR Warehouse');
+        insert loc;
+        ProductRequest pr = new ProductRequest();
+        pr.WorkOrderId = woList[0].Id;
+        insert pr;
+        
+        List<ContractLineItem> cliList = new List<ContractLineItem>();
+        ContractLineItem cli = new ContractLineItem();
+        cli.ServiceContractId = scList[0].Id;
+        cli.PricebookEntryId = standardPrice2.Id;
+        cli.UnitPrice = 100;
+        cli.Quantity =1 ;
+        cli.Priority__c = 'Severity 1' ;
+        cli.Applicable_on_Days__c = 'Monday;Tuesday;Wednesday;Thursday;Friday';
+        cli.Applicable_After_Total_Hours__c = 4;
+        cli.Applicable_If_IMAC_Due_Hours_Within__c = 30;
+        cliList.add(cli);
+        ContractLineItem cli2 = new ContractLineItem();
+        cli2.ServiceContractId = scList[0].Id;
+        cli2.PricebookEntryId = standardPrice3.Id;
+        cli2.UnitPrice = 100;
+        cli2.Quantity =1 ;
+        cli2.Applicable_on_Days__c = 'Monday;Tuesday;Wednesday;Thursday;Friday';
+        cli2.Priority__c = 'Severity 1' ;
+        cli2.Applicable_After_Total_Hours__c = 4;
+        cli2.Applicable_If_IMAC_Due_Hours_Exceeding__c = 2;
+        cliList.add(cli2);
+        ContractLineItem cli3 = new ContractLineItem();
+        cli3.ServiceContractId = childSC.Id;
+        cli3.Applicable_on_Days__c = 'Monday;Tuesday;Wednesday;Thursday;Friday';
+        cli3.PricebookEntryId = standardPrice.Id;
+        cli3.UnitPrice = 100;
+        cli3.Quantity =1 ;
+        cli3.Priority__c = 'Severity 1' ;
+        cli3.Applicable_After_Total_Hours__c = 4;
+        cli3.Applicable_If_IMAC_Due_Hours_Within__c = null;
+        cli3.Applicable_If_IMAC_Due_Hours_Exceeding__c = null;
+        cliList.add(cli3);
+        insert cliList;
+        
+        Product_Grouping__c pg = new Product_Grouping__c();
+        pg.Name = 'Test Group';
+        insert pg;
+        
+        Equipment_Type__c et = new Equipment_Type__c();
+        et.Name = 'Test';
+        et.Item_Class__c = '4500';
+        et.Product_Grouping__c = pg.Id;
+        insert et;
+        
+        Equipment_Type_For_Account__c eta = new Equipment_Type_For_Account__c();
+        eta.Equipment_Type__c = et.Id;
+        eta.Account__c = acc.Id;
+        insert eta;
+        
+        Test.startTest();
+        //ProductManagementInternal Class
+        Boolean hasContact = ProductManagementInternal.checkUserType();
+        System.assert(hasContact == false);
+        Case revisitCase = ProductManagementInternal.newCase();
+        System.assert(revisitCase != null);
+        List<Equipment_Type__c> etList = ProductManagementInternal.getEquipmentTypes(acc.Id);
+        System.assert(etList != null);
+        List<String> departmentList = ProductManagementInternal.getDepartments();
+        System.assert(departmentList != null);
+        Map<String,String> helpText = ProductManagementInternal.getHelpTexts();
+        System.assert(helpText != null);
+        Boolean isCUB = ProductManagementInternal.checkForCUB(rootAcc.Id);
+        System.assert(isCUB == true);
+        Case c = ProductManagementInternal.newCaseLine();
+        User currUser = [SELECT AccountId, Account.Root_Account__c FROM user WHERE Id= :UserInfo.getUserId()];
+        System.assert(c.Root_Account__c == curruser.AccountId);
+        list<Support_Team__c> spList = ProductManagementInternal.getSupportTeamNotes(acc);
+        System.assert(spList.isEmpty());
+        List<RecordType> rList = ProductManagementInternal.getCaseRecordTypes();
+        System.assert(rList != null);
+        List<ServiceContract> scList2 = ProductManagementInternal.getServiceContracts(accList[0].Id,accList[0].ShippingCountry);
+        System.assert(scList2 != null);
+        List<ServiceContract> scList3 = ProductManagementInternal.getServiceContracts(accList[0].Id,null);
+        System.assert(scList3 != null);
+        List<Product2> pList = ProductManagementInternal.getServiceProdcuts(scList[0].Id);
+        System.assert(pList != null);
+        List<Product2> bundlList = ProductManagementInternal.getBundleProducts(scList[0].Id, prodList[0].Id);
+        System.assert(bundlList != null);
+        String saveStatus = ProductManagementInternal.CreateCaseRecs(accList[0].Id, csList, null, null, false);
+        System.assert(saveStatus != null);
+        String saveStatus2 = ProductManagementInternal.CreateCaseProdLineitems(csList, cpList, null, null, false,prodList);
+        System.assert(saveStatus2 != null);
+        List<Code__c> codeList = ProductManagementInternal.getProductProblemCodes(prodList[0].Id);
+        System.assert(codeList != null);
+        String prodId = ProductManagementInternal.getAccProductId(prodList[0].Id);
+        System.assert(prodId != null);
+        Case cRec = ProductManagementInternal.getCaseRecord(csList[0].Id);
+        System.assert(cRec != null);
+        String saveStatus4 = ProductManagementInternal.caseDeletionRequest(csList[0].Id);
+        System.assert(saveStatus4 != null);
+        String handleCode = ProductManagementInternal.prodtHdlCode(prodList[0].Id);
+        System.assert(handleCode != null);
+        WorkOrder woReturned = ProductManagementInternal.getWO(woList[0].Id);
+        System.assert(woReturned != null);
+        String saveStatus5 = ProductManagementInternal.CreateSev2Wo(woList[0].Id);
+        System.assert(saveStatus5 != null);
+        String productId = ProductManagementInternal.getProductId(accList[0].Id);
+        System.assert(productId != null);
+        List<CaseTemplate__c> ctList = ProductManagementInternal.getCaseTemplates(rootAcc.Id);
+        System.assert(ctList != null);
+        System.assert(ctList[0].Name == 'Template 1');
+        System.assert(ctList[0].Template__c == 'Test');
+        String template = 'Template 2';
+        String selectedTemplate = 'Test 2';
+        ProductManagementInternal.createNewTemplate(rootAcc.Id, selectedTemplate, template);
+        List<CaseTemplate__c> ctList2 = [SELECT Id,Name,Template__c FROM CaseTemplate__c WHERE Root_Account__c = :rootAcc.Id Order by Createddate];
+        System.assert(ctList2 != null);
+        System.assert(ctList2.size() == 2);
+        System.assert(ctList2[1].Name == 'Template 2');
+        System.assert(ctList2[1].Template__c == 'Test 2');
+        Account childAcc = ProductManagementInternal.getChildAccount(accList[0].Id);
+        System.assert(childAcc.Name == 'test account');
+        test.stopTest();
+    }
+    
+    @isTest static void testMethod1(){
+        Account acc = [SELECT Id FROM Account WHERE Name = 'test account' LIMIT 1];
+        Account acc2 = [SELECT Id FROM Account WHERE ShippingState = 'Canada' LIMIT 1];
+        ServiceContract sc = [SELECT Id FROM ServiceContract WHERE Service_Type__c = 'Advance Exchange (Depot Only)' LIMIT 1];
+        ServiceContract sc2 = [SELECT Id FROM ServiceContract WHERE Service_Type__c = 'Onsite Labor Only' LIMIT 1];
+        WorkOrder wo = [SELECT Id,No_Cost__c,(SELECT Id FROM WorkOrderLineItems) From WorkOrder WHERE ServiceContractId =:sc.Id LIMIT 1];
+        List<Product2> prodList = [SELECT Id FROM Product2 WHERE Account_Item_Belongs_To__c =: acc.Id];
+        
+        list<Case> clList = new list<Case>();
+        Case cs = new Case();
+        cs.AccountId = acc.Id;
+        cs.Asset_Number__c = '0002';
+        cs.Description = 'CreateCaseRecs';
+        cs.ProductId = prodList[0].Id;
+        cs.Service_Type__c = 'Advance Exchange (Depot Only)';
+        cs.servicecontractId = sc.Id;
+        cs.Out_Of_Scope__c = false;
+        clList.add(cs);
+        Case cs2 = new Case();
+        cs2.AccountId = acc.Id;
+        cs2.Asset_Number__c = '0002';
+        cs2.Description = 'CreateCaseRecs';
+        cs2.ProductId = prodList[0].Id;
+        cs2.Service_Type__c = 'Onsite Labor Only';
+        cs2.servicecontractId = sc2.Id;
+        cs2.Out_Of_Scope__c = false;
+        clList.add(cs2);
+        Case cs3 = new Case();
+        cs3.AccountId = acc2.Id;
+        cs3.Asset_Number__c = '0002';
+        cs3.Description = 'CreateCaseRecs';
+        cs3.ProductId = prodList[0].Id;
+        cs3.Service_Type__c = 'Onsite Labor Only';
+        cs3.servicecontractId = sc2.Id;
+        cs3.Out_Of_Scope__c = false;
+        clList.add(cs3);
+        
+        List<Entitlement> eList = new List<Entitlement>();
+        Entitlement etl = new Entitlement();
+        etl.Name = 'ASCENA Onsite Support';
+        etl.Type = 'Onsite IMAC';
+        etl.AccountId = acc.Id;
+        etl.Type = 'Advance Exchange (Depot Only)';
+        eList.add(etl);
+        Entitlement etl2 = new Entitlement();
+        etl2.Name = 'ASCENA Onsite Support';
+        etl2.Type = 'Onsite IMAC';
+        etl2.AccountId = acc.Id;
+        etl2.Type = 'Onsite Labor Only';
+        eList.add(etl2);
+        insert eList;
+        
+        List<Case_Product__c> cpList = new List<Case_Product__c>();
+        Case_Product__c cp = new Case_Product__c();
+        cp.Name = 'Test Product';
+        cp.Product__c = prodList[0].Id;
+        cp.Quantity__c = 2;
+        cpList.add(cp);
+        
+        Test.startTest();
+        String saveStatus2 = ProductManagementInternal.CreateCaseRecs(acc.Id, clList, null, null, false);
+        List<Case> caseCheckList = [SELECT Id FROM Case WHERE AccountId =: acc.Id AND Asset_Number__c = '002'];
+        //System.assert(saveStatus2 != null);
+        System.assert(caseCheckList != null);
+        String saveStatus3 = ProductManagementInternal.CreateCaseRecs(acc2.Id, clList, wo, null, false);
+        WorkOrder woCheck = [SELECT Id,Status,(SELECT Id FROM WorkOrderLineItems) FROM WorkOrder WHERE Id =: wo.Id];
+        System.assert(saveStatus3 == null);
+        System.assert(woCheck.Status == 'Closed');
+        System.assert(woCheck.WorkOrderLineItems.size() == 0);
+        test.stopTest();
+    }
+}

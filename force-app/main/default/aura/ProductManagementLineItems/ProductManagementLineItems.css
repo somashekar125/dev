@@ -1,0 +1,87 @@
+.THIS .displayHelper{
+    display:none !important;
+}
+.THIS .slds-accordion {
+    z-index: 1 !important;
+}
+.THIS .slds-form-element__label {
+    z-index: 0 !important;
+}
+
+.THIS div.cCustomLookup{
+    margin-top: -3%;
+}
+.THIS .iconColor {
+    --sds-c-icon-color-foreground: rgb(13, 64, 158);
+}
+.THIS textarea{
+    height : 290px;
+}
+
+.THIS .hideInputField{
+    display : none
+}
+
+.THIS .slds-spinner_container  {
+    background-color: rgba(0, 0, 0, 0.10);
+    margin-top: 20% !important;
+    margin-bottom: 20% !important; 
+}
+
+.THIS div.div3column{
+    width : 33%;
+}
+
+.THIS div.div4column{
+    width : 25%;
+}
+
+.THIS .servRequid > label {
+    display: none;
+}
+
+/*.THIS lightning-helptext {
+    display: none;
+}*/
+
+.THIS lightning-input-field.deviceAccProduct .slds-form-element .slds-form-element__control input :placeholder-shown{
+    content:'Select Device';
+}
+
+/*.THIS lightning-datepicker{
+    font-size: 13px;
+}
+
+.THIS lightning-timepicker{
+    font-size: 13px;
+}*/
+
+.THIS .labelColor{
+    color: white;
+}
+
+.THIS .iconColor {
+    --sds-c-icon-color-foreground: red;
+}
+
+.THIS .outOfScopeIcon .slds-button__icon{
+    color: red !important;
+    scale: 200%;
+    margin-top: 50%;
+}
+
+.THIS .slds-textarea{
+    height: 0%;
+}
+
+.THIS .prefTime .slds-form-element{
+    width: 100%;
+}
+
+.THIS .bordercolor {
+    border-style: ridge;
+    border-width: thin;
+    border-color: gainsboro;
+    border-radius: 5px;
+    padding: 5px;
+}

@@ -1,0 +1,11 @@
+<aura:component controller="WorkOrderCreationController" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction,lightning:actionOverride" access="global" >
+    <aura:attribute name="recordId" type="Id"/>
+    <aura:attribute name="caseRec" type="Case"/>
+    <aura:attribute name="recordType" type="RecordType"/>
+    <aura:attribute name="serviceConract" type="ServiceContract"/>
+    <aura:attribute name="onsiteSC" type="Boolean" default="false"/>
+    <aura:handler name="init" value="{!this}" action="{!c.myAction}"/>
+    <ltng:require styles="{!$Resource.ModalWidthWOButtons}"/>
+    <lightning:button variant="brand" label="New Onsite Work Order" title="Brand action" onclick="{! c.createNewOnsiteWorkOrder}"/>
+    <lightning:button variant="brand" label="New Part Request Work Order" title="Brand action" onclick="{! c.createNewPartWorkOrder}"/>
+</aura:component>

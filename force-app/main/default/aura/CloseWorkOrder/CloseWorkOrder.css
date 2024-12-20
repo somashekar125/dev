@@ -1,0 +1,8 @@
+.THIS .iconColor {
+    --sds-c-icon-color-foreground: red;
+}
+
+.THIS .slds-form-element_check-in-time-c .slds-form-element__label,
+.THIS .slds-form-element_check-out-time-c .slds-form-element__label {
+    font-weight: normal !important;
+}

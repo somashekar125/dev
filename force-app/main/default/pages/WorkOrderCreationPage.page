@@ -1,0 +1,17 @@
+<apex:page standardController="WorkOrder" recordSetVar="WorkOrders">
+    <apex:includeLightning />
+    <apex:slds />
+    <div id="lightning"/>
+    <script>
+        $Lightning.use("c:WorkOrderCreationApp", function() {
+            $Lightning.createComponent
+            ("c:WorkOrderCreation",
+             "",
+             "lightning",
+             function(component) {
+                 //component.set("v.recordId",'{!$CurrentPage.parameters.id}');
+                 //component.set("v.callNewWO",true);
+             });
+        });
+	</script>
+</apex:page>

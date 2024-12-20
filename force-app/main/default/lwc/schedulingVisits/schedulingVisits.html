@@ -1,0 +1,195 @@
+<template>
+    <div style="margin-bottom: 1rem;">
+        <div style="display: flex; align-items: center;">
+            <div style="width: 5.2%; margin-right: 10px;">
+                <button class="slds-button slds-button_neutral" style="margin-bottom: 20%;margin-bottom: 1%;" onclick={handleBackClick}>
+                    BACK
+                </button>
+            </div>
+            <nav style="flex-grow: 1;">
+                <div style="background-color: rgb(1, 118, 211); border-radius: 10px; padding: 0.5%; margin-left: -1%">
+                    <h2 style="font-size: 1.25rem; text-align: center; color: white;">{projName} - {visit}</h2>
+                </div>
+            </nav>
+        </div>
+        <template if:true={showSpinner}>
+            <lightning-spinner alternative-text="Loading..." variant="brand"> </lightning-spinner>
+        </template>
+        <div style="display: flex; justify-content: center; align-items: center; margin-top: 1%;">
+            <strong>MASS TIMING &nbsp;</strong>
+            <template if:false={projectRec.hasDefaultTime}>
+                <lightning-input style="margin-left: 1rem;" type="datetime" variant="label-hidden" onchange={handleChangeDateTime}></lightning-input>
+            </template>
+            <template if:true={projectRec.hasDefaultTime}>
+                <lightning-input type="date" value={massDate} onchange={handleChangeDate} variant="label-hidden" style="width: 150px; margin-right: 0.5rem;"></lightning-input>
+                <lightning-input type="time" value={massTime} onchange={handleChangeTime} variant="label-hidden" style="width: 100px;"></lightning-input>
+            </template>
+            <lightning-button style="margin-left: 1rem; border-radius: 10px;" variant="brand" label="SAVE" onclick={openConfirmationPopUp}></lightning-button>    
+            <lightning-button style="margin-left: 1rem; border-radius: 10px;" variant="neutral" label="RESET SCHEDULED" onclick={openUnscheduleConfirmationPopUp}></lightning-button>
+        </div>
+    </div>
+    <template if:true={showConfirmationPopUp}>
+        <div class="slds-backdrop slds-backdrop_open">
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+                aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium">Confirmation</h2>
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                        title="Close" onclick={closeModal}>
+                        <lightning-icon icon-name="utility:close" alternative-text="Close" size="small"></lightning-icon>
+                        </button>
+                    </header>
+                <div class="slds-modal__content slds-p-around_medium" style="text-align: center;" id="modal-content-id-1">
+                    <p>Are you sure you want to schedule with these timings?.</p>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning-button variant="neutral" label="No" title="" onclick={closeConfirmationPopup} class="slds-m-left_x-small"></lightning-button>
+                    <lightning-button variant="brand" label="Yes" title="" onclick={handleClick} class="slds-m-left_x-small"></lightning-button>
+                </footer>
+                </div>
+            </section>
+        </div>
+    </template>
+    <template if:true={showUnschedulePopUp}>
+        <div class="slds-backdrop slds-backdrop_open">
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+                aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <h2 id="modal-heading-02" class="slds-text-heading_medium">Confirmation</h2>
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                        title="Close" onclick={closeModal}>
+                        <lightning-icon icon-name="utility:close" alternative-text="Close" size="small"></lightning-icon>
+                        </button>
+                    </header>
+                <div class="slds-modal__content slds-p-around_medium" style="text-align: center;" id="modal-content-id-2">
+                    <p>Are you sure you want to  unschedule these appointments?.</p>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning-button variant="neutral" label="No" title="" onclick={closeConfirmationPopup} class="slds-m-left_x-small"></lightning-button>
+                    <lightning-button variant="brand" label="Yes" title="" onclick={unscheduleHandleClick} class="slds-m-left_x-small"></lightning-button>
+                </footer>
+                </div>
+            </section>
+        </div>
+    </template>
+    <div>
+        <div class="toast-message" style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background-color: #4CAF50; color: white; padding: 15px 30px; border-radius: 5px;
+            box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.2); z-index: 9999; transition: opacity 0.3s ease-in-out;">
+            Scheduling successful!
+        </div>
+        <div class="toast-message-reset" style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background-color: #4CAF50; color: white; padding: 15px 30px; border-radius: 5px;
+            box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.2); z-index: 9999; transition: opacity 0.3s ease-in-out;">
+            Reset Scheduling successful!
+        </div> 
+        <div class="error-toast-message warning" style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background-color: #f10909; color: rgb(248, 246, 246); padding: 15px 30px; border-radius: 5px;
+            box-shadow: 0px 2px 10px rgb(245, 6, 6); z-index: 9999; transition: opacity 0.3s ease-in-out;">
+            Visits can only be scheduled on these Days: {applicableDays}
+        </div>
+
+        <div class="visit-toast-message" style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background-color: #f10909; color: rgb(248, 246, 246); padding: 15px 30px; border-radius: 5px;
+            box-shadow: 0px 2px 10px rgb(245, 6, 6); z-index: 9999; transition: opacity 0.3s ease-in-out;">
+            This visit is prohibited!.
+        </div>
+        <div class="time-toast-message" style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background-color: #f10909; color: rgb(248, 246, 246); padding: 15px 30px; border-radius: 5px;
+            box-shadow: 0px 2px 10px rgb(245, 6, 6); z-index: 9999; transition: opacity 0.3s ease-in-out;">
+            Please enter Date and Time value!.
+        </div>
+        <div class="error-toast-message-Visit2" style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background-color: #f10909; color: rgb(248, 246, 246); padding: 15px 30px; border-radius: 5px;
+            box-shadow: 0px 2px 10px rgb(245, 6, 6); z-index: 9999; transition: opacity 0.3s ease-in-out;">
+            Please complete Visit 1 before proceeding to Visit 2.
+        </div>
+
+        <div class="error-toast-message-Visit3" style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background-color: #f10909; color: rgb(248, 246, 246); padding: 15px 30px; border-radius: 5px;
+            box-shadow: 0px 2px 10px rgb(245, 6, 6); z-index: 9999; transition: opacity 0.3s ease-in-out;">
+            Please complete Visit 2 before proceeding to Visit 3.
+        </div>
+
+        <div class="projectAccount-toast-message" style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background-color: #f10909; color: rgb(248, 246, 246); padding: 10px 20px; border-radius: 5px;
+            max-width: 80%; width: auto; font-size: 1.2rem; box-shadow: 0px 2px 10px rgb(245, 6, 6); z-index: 9999;
+            text-align: center; transition: opacity 0.3s ease-in-out;">
+            There are no project accounts for this project.
+        </div>
+
+
+        <table class="slds-table slds-table_cell-buffer slds-table_bordered" style="width: 100%;">
+            <thead style="position: sticky; top: 0; z-index: 50; background-color: #f3f3f3;">
+                <tr>
+                    <th style="width: 5%;"></th>
+                    <th style="width: 15%; text-align: center; padding: 0.5rem;">
+                        <a href="javascript:void(0);" title = "ACCOUNTS" onclick={handleMetroAreaSort}>
+                            ACCOUNTS
+                            <template if:true={sortIconAccount}>
+                                <lightning-icon icon-name={sortIconName1} size="xx-small" alternative-text="Sort" title="Sort"></lightning-icon>
+                            </template>
+                        </a>
+                    </th>
+                    <th style="width: 24%; text-align: center; padding: 0.5rem;">ADDRESS</th>
+                    <th style="width: 24%; text-align: center; padding: 0.5rem;">
+                        <a href="javascript:void(0);" title = "METRO AREA" onclick={handleMetroAreaSort}>
+                            METRO AREA
+                            <template if:true={sortIconMetroArea}>
+                                <lightning-icon icon-name={sortIconName2} size="xx-small" alternative-text="Sort" title="Sort"></lightning-icon>
+                            </template>
+                        </a>
+                    </th>
+                    <th style="width: 10%; text-align: center; padding: 0.5rem;">TIMEZONE</th>
+                    <th style="width: 24%; text-align: center; padding: 0.5rem;">APPOINTMENT TIME</th>
+                    <th style="width: 8%; text-align: center; padding: 0.5rem;">
+                        <lightning-icon icon-name="utility:refresh" size="small" onclick={refreshLists} style="outline-style: auto;"></lightning-icon>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <template for:each={projAccList} for:item="projAcc" for:index="index">
+                    <tr key={projAcc.Id}>
+                        <td>{projAcc.itemSerialNo}.</td>
+                        <td style="text-align: center; padding: 0.4rem;" data-label="Project Account Name">{projAcc.Name}</td>
+                        <td style="text-align: center; padding: 0.4rem; white-space: normal;" data-label="Project Account Address">
+                            {projAcc.Account__r.ShippingStreet}{projAcc.Account__r.ShippingCity}, {projAcc.Account__r.ShippingState}{projAcc.Account__r.ShippingCity}, {projAcc.Account__r.ShippingState}
+                            {projAcc.Account__r.ShippingCountry} {projAcc.Account__r.ShippingPostalCode}
+                        </td>
+                        <td style="text-align: center; padding: 0.4rem; white-space: normal;" data-label="Account Timezone">
+                            {projAcc.Account__r.Metro_Area__c}
+                        </td>
+                        <td style="text-align: center; padding: 0.4rem;" data-label="Account Timezone">
+                            {projAcc.Account__r.Timezone__c}   
+                        </td>
+                        <td style="display: flex; align-items: center; justify-content: center; padding: 0.4rem;">
+                            <template if:true={projAcc.dateValueAvailable}>
+                                <lightning-input type="datetime" data-id={projAcc.Id} value={projAcc.visit} data-index={index} onchange={populateDateTime} variant="label-hidden" style="margin-top: 1%;"></lightning-input>
+                            </template>
+                            <template if:false={projAcc.dateValueAvailable}>
+                                <lightning-input type="date" data-id={projAcc.Id} value={projAcc.visitDate} data-index={index} onchange={populateDate} variant="label-hidden" style="margin-right: 0.5rem;margin-top: 1%;"></lightning-input>
+                                <lightning-input type="time" data-id={projAcc.Id} value={projAcc.visitTime} data-index={index} onchange={populateTime} variant="label-hidden" style="margin-top: 1%;"></lightning-input>
+                            </template>
+                        </td>
+                        <td style="text-align: center; padding: 0.5rem;">
+                            <lightning-icon icon-name="utility:delete" size="small" data-id={projAcc.Id} onclick={onRemovingSelected}></lightning-icon>
+                        </td>
+                    </tr>
+                </template>
+            </tbody>
+        </table>
+    </div>
+    <template if:true={showBelowBottomScheduling}>
+        <div style="display: flex; justify-content: center; align-items: center; margin-top: 1%; margin-bottom: 1%">
+            <strong>MASS TIMING &nbsp;</strong>
+            <lightning-input type="date" value={massDate} onchange={handleChangeDate} variant="label-hidden" style="width: 150px; margin-right: 0.5rem;"></lightning-input>
+            <lightning-input type="time" value={massTime} onchange={handleChangeTime} variant="label-hidden" style="width: 100px;"></lightning-input>
+            <lightning-button style="margin-left: 1rem; border-radius: 10px;" variant="brand" label="SAVE" onclick={openConfirmationPopUp}
+            ></lightning-button>    
+            <lightning-button style="margin-left: 1rem; border-radius: 10px;" variant="neutral" label="RESET SCHEDULED" onclick={openUnscheduleConfirmationPopUp}
+            ></lightning-button>
+        </div>
+    </template>
+</template>

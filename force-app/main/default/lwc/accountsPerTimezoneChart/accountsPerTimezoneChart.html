@@ -1,0 +1,21 @@
+<template>
+    <div class="slds-top_small" style="display: flex;">
+        <div>
+            <lightning-button label="Show All" onclick={showAllRecords}></lightning-button>
+        </div>
+        <div style="margin-left: auto;">
+            <lightning-input  
+                type="date"
+                variant="label-hidden"
+                style="z-index: 5;"
+                onchange={handleChange} 
+                value={selectedDate}
+            ></lightning-input>
+        </div>
+    </div>
+    <div if:true={isLoading} class="slds-is-relative">
+        <lightning-spinner alternative-text="Loading chart" size="medium"></lightning-spinner>
+    </div>
+    <div class="chart-container" lwc:dom="manual" style="height: 400px;"></div>
+    <div class="slds-m-around_medium chart-container pie-chart-container" lwc:dom="manual" style="height: 400px;"></div>
+</template>

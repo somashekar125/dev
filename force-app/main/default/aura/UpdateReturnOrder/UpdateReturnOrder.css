@@ -1,0 +1,22 @@
+.THIS .modal-footer .slds-modal__footer{
+    display: none !important;
+}
+
+.THIS .flex-container {
+    display: flex;
+    width: 100%;
+}
+.THIS  .half-width {
+    width: 50%;
+}
+.THIS .content {
+    width: 100%;
+    overflow: hidden;
+    word-wrap: break-word;
+    margin-left:1%;
+}
+.THIS .hr-style {
+    width: 96%;
+    color: gainsboro;
+    margin-top: 2%;
+}

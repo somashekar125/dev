@@ -1,0 +1,11 @@
+<aura:component implements= "lightning:availableForFlowScreens" access = "global">
+    <aura:attribute name="value" type="string" default=""/>
+    <aura:attribute name="label" type="string" default=""/>
+    <aura:attribute name="required" type="boolean" default="false"/>
+    <aura:attribute name = "validate" type = "Aura.Action"/>
+    <aura:handler name="init" value = "{!this}" action = "{!c.doInit}"/>
+    <lightning:recordEditForm objectApiName="ServiceContract">
+        <span>{!$Label.c.Account_Name_In_SC}</span>
+        <lightning:inputField fieldName="AccountId" variant = "label-hidden" value="{!v.value}" required = "{!v.required}"/>
+    </lightning:recordEditForm>
+</aura:component>

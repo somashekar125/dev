@@ -1,0 +1,114 @@
+<aura:component controller="DateTimeTimezoned" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" >
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="caseRec" type="Case"/>
+    <aura:attribute name="edit" type="boolean" />
+    <aura:attribute name="sladatetimeStr" type="String"/>
+    <aura:attribute name="techOnsiteETAStr" type="String"/>
+    <aura:attribute name="prefTimeStr" type="String"/>
+    <aura:attribute name="partshipTimeStr" type="String"/>
+    <aura:attribute name="sladatetime" type="datetime"/>
+    <aura:attribute name="prefDate" type="datetime"/>
+    <aura:attribute name="partDate" type="datetime"/>
+    <aura:attribute name="techOnsiteETA" type="datetime" />
+    <aura:attribute name="saveDate" type="boolean"/>
+    <aura:attribute name="oldSLAdatetime" type="datetime"/>
+    <aura:attribute name="oldPartDate" type="datetime"/>
+    <aura:attribute name="oldPrefDate" type="datetime"/>
+    <aura:attribute name="oldTechOnsiteETA" type="datetime" />
+    <aura:handler name="init" value="{!this}" action="{!c.myAction}" />
+    
+    <div class="slds-grid slds-wrap">
+        <div class="slds-col slds-size_1-of-2">
+            <div class="slds-col" style="margin-right: 25px;">
+                <div style="float: left;">
+                    <span style="color: black;margin-right:2px;">SLA Due Date/Time</span>
+                    <lightning:helptext content="Datetime by which case must be resolved in order to meet SLA as per contract"/>
+                </div>
+                <div style="float: right;margin-left: 11px; margin-top:1px">
+                    <span style="color: black;margin-right:3px">{!v.sladatetimeStr}</span>
+                    <lightning:buttonIcon class= "icon" iconName="utility:edit" variant="bare" onclick="{!c.handleEdit}" alternativeText="Edit"/>
+                    <span style="color: black;margin-left:3px">({!v.caseRec.Account.Timezone__c}) </span>
+                </div>
+                <div style="float: left;">
+                    <aura:if isTrue="{!v.edit}">
+                        <lightning:input type="datetime" name="input" onchange="" label="" variant="label-inline" value="{!v.sladatetime}"/>
+                    </aura:if>
+                </div>
+                <div style="height: 1px;"></div>
+                <hr width="102%" style="color:gainsboro;"/>
+            </div>
+        </div>
+        <br/>
+        <div class="slds-col slds-size_1-of-2" style="width:47%;margin-left:1%">
+            <div class="slds-col">
+                <div style="float: left;">
+                    <span style="color: black;margin-right:2px;">Preferred Time</span>
+                    <lightning:helptext content="Time entered here indicates Store Local Time."/>
+                </div>
+                <div style="float: right;margin-left: 11px; margin-top:1px">
+                    <span style="color: black;margin-right:3px">{!v.prefTimeStr}</span>
+                    <lightning:buttonIcon class= "icon" iconName="utility:edit" variant="bare" onclick="{!c.handleEdit}" alternativeText="Edit"/> 
+                    <span style="color: black;margin-left:3px">({!v.caseRec.Account.Timezone__c}) </span>
+                </div>
+                <div style="float: left;">
+                    <aura:if isTrue="{!v.edit}">
+                        <lightning:input type="datetime" name="input" onchange="" label="" variant="label-inline" value="{!v.prefDate}"/>
+                    </aura:if>
+                </div>
+                <div style="height: 1px;"></div>
+                <hr width="102%" style="color:gainsboro;"/>
+            </div>
+        </div>
+        <br/>
+        <div class="slds-col slds-size_1-of-2">
+            <div class="slds-col" style="margin-right: 25px;">
+                <div style="float: left;">
+                    <span style="color: black;margin-right:2px;">Part Shipped Due DateTime</span>
+                    <lightning:helptext content="Date and Time when Part Receipt is due."/>
+                </div>
+                <div style="float: right;margin-left: 11px; margin-top:1px">
+                    <span style="color: black;margin-right:3px">{!v.partshipTimeStr}</span>
+                    <lightning:buttonIcon class= "icon" iconName="utility:edit" variant="bare" onclick="{!c.handleEdit}" alternativeText="Edit"/> 
+                    <span style="color: black;margin-left:3px">({!v.caseRec.Account.Timezone__c}) </span>
+                </div>
+                <div style="float: left;">
+                    <aura:if isTrue="{!v.edit}">
+                        <lightning:input type="datetime" name="input" onchange="" label="" variant="label-inline" value="{!v.partDate}"/>
+                    </aura:if>
+                </div>
+                <div style="height: 1px;"></div>
+                <hr width="102%" style="color:gainsboro;"/>
+            </div>
+        </div>
+        <br/>
+        <div class="slds-col slds-size_1-of-2" style="width:47%;margin-left:1%">
+            <div class="slds-col">
+                <div style="float: left;">
+                    <span style="color: black;margin-right:2px;">Technician OnSite ETA</span>
+                    <lightning:helptext content="Estimated Date / Time IW's field service technician will arrive onsite."/>
+                </div>
+                <div style="float: right;margin-left: 11px; margin-top:1px">
+                    <span style="color: black;margin-right:3px">{!v.techOnsiteETAStr}</span>
+                    <lightning:buttonIcon class= "icon" iconName="utility:edit" variant="bare" onclick="{!c.handleEdit}" alternativeText="Edit"/> 
+                    <span style="color: black;margin-left:3px">({!v.caseRec.Account.Timezone__c}) </span>
+                </div>
+                <div style="float: left;">
+                    <aura:if isTrue="{!v.edit}">
+                        <lightning:input type="datetime" name="input" onchange="" label="" variant="label-inline" value="{!v.techOnsiteETA}"/>
+                    </aura:if>
+                </div>
+                <div style="height: 1px;"></div>
+                <hr width="102%" style="color:gainsboro;"/>
+            </div>
+        </div>
+        <br/>
+        <div class="slds-col slds-size_1-of-1">
+            <aura:if isTrue="{!v.edit}">
+                <div class="slds-wrap slds-text-align_center">
+                    <lightning:button variant="brand" type="submit" name="save" label="Save" onclick="{!c.handleSave}"/>
+                    <lightning:button variant="neutral" label="Cancel" title="Cancel" type="text" onclick="{!c.handleCancel}" />
+                </div>
+            </aura:if>
+        </div>
+    </div>
+</aura:component>

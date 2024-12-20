@@ -1,0 +1,49 @@
+<aura:component controller = "QuickActions" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" >
+    <aura:handler name="init" value="{!this}" action="{!c.myAction}"/>
+    <aura:attribute name="recordId" type="Id"/>
+    <aura:attribute name="woRec" type="WorkOrder"/>
+    <aura:attribute name="loadSpinner" type="boolean" default="false"/>
+    
+    <ltng:require styles="{!$Resource.ModalWidthWOButtons}"/>
+    <aura:if isTrue="{!v.recordId != null}">
+        <div >
+            <!--<h1 style="font-size: x-large;font-weight: bold;text-align: center;text-decoration-line: underline;">CHECK OUT</h1>-->
+            <aura:if isTrue="{!v.loadSpinner}">
+                <div style="position: relative;">
+                    <lightning:spinner variant="brand" size="medium" style="height: 500px;"/>
+                </div>
+            </aura:if>
+            <lightning:recordEditForm recordId="{!v.recordId}" objectApiName="WorkOrder">
+                <div style="width:100%;display:flex;">
+                	<span style="width:50%;">
+                    	<lightning:inputField fieldName="Technician_Status__c" variant="label-inline" value="{!v.woRec.Technician_Status__c}"/>
+                    </span>
+                    <span style="width:50%;">
+                    	<lightning:inputField fieldName="Onsite_Manager_Name__c" variant="label-inline" required = "true" value="{!v.woRec.Onsite_Manager_Name__c}"/>
+                    </span>
+                </div>
+                <div style="width:100%;display:flex;">
+                	<span style="width:50%;">
+                    	<lightning:inputField fieldName="Resolution_Code__c" variant="label-inline" required = "true" value="{!v.woRec.Resolution_Code__c}"/>
+                    </span>
+                    <span style="width:50%;">
+                    	<lightning:inputField fieldName="Help_Desk_Contact__c" variant="label-inline" value="{!v.woRec.Help_Desk_Contact__c}"/>
+                    </span>
+                </div>
+                <div style="width:100%;display:flex;">
+                	<span style="width:50%;">
+                    	<lightning:inputField fieldName="Resolution_Notes__c" variant="label-inline" required = "true" value="{!v.woRec.Resolution_Notes__c}"/>
+                    </span>
+                    <span style="width:50%;">
+                    	<lightning:inputField fieldName="Return_Order_Tracking_Numbers__c" variant="label-inline" value="{!v.woRec.Return_Order_Tracking_Numbers__c}"/>
+                    </span>
+                </div>
+                <lightning:inputField fieldName="Reason_for_Revisit__c" variant="label-inline" style="width:50%;" value="{!v.woRec.Reason_for_Revisit__c}"/>
+                <br/>
+                <div style="text-align: center;">
+                	<lightning:button variant="brand" name='Save' label='Save' type="Submit" onclick='{!c.handleSave}'/>
+                </div>
+            </lightning:recordEditForm>
+        </div>
+    </aura:if>
+</aura:component>

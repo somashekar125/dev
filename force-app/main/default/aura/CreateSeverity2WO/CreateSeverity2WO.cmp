@@ -1,0 +1,15 @@
+<aura:component controller="ProductManagement" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" >
+    <aura:handler name="init" value="{!this}" action="{!c.myAction}"/>
+    <aura:attribute name="recordId" type="string"/>
+    <aura:attribute name="loadSpinner" type="boolean" default="false"/>
+    <aura:if isTrue="{!v.loadSpinner}">
+        <lightning:spinner variant="brand" size="large"/>
+    </aura:if>
+    <div style="text-align:right;">
+        <ul class="slds-button-group-list">
+            <li>
+                <button class="slds-button slds-button_brand" onclick="{!c.createSev2WO}">Create Followup Severity 2 WO</button>
+            </li>
+        </ul>
+    </div>
+</aura:component>

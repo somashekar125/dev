@@ -1,0 +1,14 @@
+<aura:component controller = "QuickActions" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" >
+    <aura:handler name="init" value="{!this}" action="{!c.myAction}"/>
+    <aura:attribute name="recordId" type="Id"/>
+    <aura:attribute name="loadSpinner" type="boolean" default="false"/>
+
+    <div style="text-align:center;">
+        <p style="font-size: medium;">Marking "In Progress"</p>
+        <aura:if isTrue="{!v.loadSpinner}">
+            <div style="position: relative;">
+                <lightning:spinner variant="brand" size="medium" style="height: 60px;"/>
+            </div>
+        </aura:if>
+    </div>
+</aura:component>

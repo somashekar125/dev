@@ -1,0 +1,400 @@
+<template>
+    <template if:false={orderVanParts}>
+        <div style="display: flex;float:right;margin-top:1%;">
+            <span>
+                <lightning-button variant="brand" label="Order Van Parts" title="Successful action" onclick={handleNavigate}></lightning-button>
+            </span>
+            <span style="margin-top: 1%;margin-left:10px">
+                <span class="slds-media__figure slds-listbox__option-icon" style="float: right;outline-style:auto;">
+                    <span class="slds-icon_container">
+                        <lightning-icon icon-name="utility:refresh" size="small" onclick={getProductList}></lightning-icon>
+                    </span>
+                </span>
+            </span>
+        </div>
+        <br></br>
+        <template if:true={showSpinnerOnRefresh}>
+            <lightning-spinner alternative-text="Loading..." variant="brand"> </lightning-spinner>
+        </template>
+        <div>
+            <p style="font-size: medium;font-weight: bold;">
+                Van Stock:
+            </p>
+            <div class="slds-scrollable">
+                <table id="table1" class="slds-table slds-table_bordered slds-table_cell-buffer">
+                    <thead>
+                        <tr class="slds-text-title_caps">
+                            <th style="width: 2%;"></th>
+                            <th style="width: 73%;">
+                                <div class="slds-truncate">Product</div>
+                            </th>
+                            <th style="width: 10%;">
+                                <div class="slds-truncate">Product Code</div>
+                            </th>
+                            <th style="width: 10%;">
+                                <div>Min Qty</div>
+                            </th>
+                            <th style="width: 5%;">
+                                <div class="slds-truncate">Van Qty</div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template for:each={productList} for:item="record" for:index="index">
+                            <tr key={record.Id}>
+                                <td>
+                                    {record.serialNo}.
+                                </td>
+                                <td class="slds-truncate" style="white-space: normal;">
+                                    <a data-id={record.Id} data-index={index} onclick={goToDetailPage}>{record.Name}</a>
+                                </td>
+                                <td class="slds-truncate" style="white-space: normal;">
+                                    {record.ProductCode}
+                                </td>
+                                <td>
+                                    <template for:each={record.ProductItems} for:item="prodItem" for:index="itemIndex">
+                                        <template if:true={prodItem.isVanLocation}>
+                                            {prodItem.Minimum_Quantity__c}
+                                        </template>
+                                    </template>                                        
+                                </td>
+                                <td>
+                                    <template for:each={record.ProductItems} for:item="prodItem" for:index="itemIndex">
+                                        <template if:true={prodItem.isVanLocation}>
+                                            {prodItem.QuantityOnHand}
+                                        </template>
+                                    </template>                                        
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </template>
+    <template if:true={orderVanParts}>
+        <div style="margin:1%;">
+            <span class="slds-media__figure slds-listbox__option-icon" style="float: right;outline-style:auto;">
+                <span class="slds-icon_container">
+                    <lightning-icon icon-name="utility:refresh" size="small" onclick={refreshLists}></lightning-icon>
+                </span>
+            </span>
+            <template if:true={showAllProdsSpinner}>
+                <div><lightning-spinner alternative-text="Loading..." variant="brand"> </lightning-spinner></div>
+            </template>
+        </div>
+        <div style="float:left;">
+            <span>
+                <lightning-button variant="brand" label="Back" title="" onclick={backToVanStock} class="slds-m-left_x-small"></lightning-button>
+            </span>
+        </div>
+        <br></br>
+        <div style="width:100%;margin:1%;">
+            <span style="width:fit-content;display:block;">
+                <lightning-combobox name="select" label="" variant="label-hidden" placeholder ="Select Field Technician" value={selectedValue} options={techNameList} onchange={setFieldTechId} required = "true"></lightning-combobox>
+            </span>
+        </div>
+        <div style="margin-left: 1%;margin-right: 1%;width: 98%;max-width: 98% !important;">
+            <div data-key="searchdiv" class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none">
+                <input type="text" data-name="searchProdInput" value={searchKey} onkeyup={handleKeyChange} class="slds-input slds-combobox__input slds-has-focus" id="combobox-id-2" aria-autocomplete="list" aria-controls="listbox-id-2" role="textbox" placeholder="Search Products..." />
+                <span class="slds-icon_container slds-icon-utility-search slds-input__icon slds-input__icon_right">
+                    <lightning-icon icon-name="utility:search" size="xx-Small" class="slds-icon slds-icon slds-icon_x-small slds-icon-text-default" aria-hidden="true"></lightning-icon>
+                </span>
+            </div>
+            <template if:true={recordsPresent}>
+                <div id="listbox-id-2-venu" data-key="dropdownresult" class="slds-show slds-dropdown slds-dropdown_length-with-icon-7 slds-dropdown_fluid" role="listbox">
+                    <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                        <template for:each={recordsListOnSearch} for:item="record" for:index="index">
+                            <li data-id={record.Id} data-name="searhedProducts" data-index={index} key={record.Id} onclick={onRecordSelection} role="presentation" class="slds-listbox__item">
+                                <div data-key={record.Id} data-name={record.Name} class="slds-media slds-listbox__option slds-listbox__option_entity slds-listbox__option_has-meta" role="option">
+                                    <span class="slds-media__figure slds-listbox__option-icon">
+                                        <span class="slds-icon_container">
+                                            <lightning-icon icon-name="standard:product" size="small"></lightning-icon>
+                                        </span>
+                                    </span>
+                                    <span class="slds-media__body">
+                                        <span data-key={record.Id} data-name={record.Name} class="slds-listbox__option-text slds-listbox__option-text_entity" style="white-space: normal;">{record.Name}</span>
+                                        <span data-key={record.Id} data-name={record.Name} class="slds-listbox__option-text slds-listbox__option-text_entity" style="white-space: normal;">{record.ProductCode}</span>
+                                    </span>
+                                </div>
+                            </li>
+                        </template>
+                    </ul>
+                </div>
+            </template>
+        </div>
+        <template if:true={addedProdExists}>
+            <p style="font-size: medium;font-weight: bold;margin-left:1%;margin-top:2%;">
+                Added Products
+            </p>
+            <div class="slds-scrollable">
+                <table id="table2" class="slds-table slds-table_bordered slds-table_cell-buffer">
+                    <thead>
+                        <tr class="slds-text-title_caps">
+                            <th style="width: 5%;"></th>
+                            <th style="width: 35%;">
+                                <div>Product</div>
+                            </th>
+                            <th style="width: 10%;">
+                                <div>Product Code</div>
+                            </th>
+                            <th style="width: 10%;">
+                                <div>Quantity</div>
+                            </th>
+                            <th style="width: 10%;">
+                                <div>Min Qty</div>
+                            </th>
+                            <th style="width: 10%;">
+                                <div>Van Qty</div>
+                            </th>
+                            <th style="width: 10%;">
+                                <div>WHSE Qty</div>
+                            </th>
+                            <th style="width: 10%;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template for:each={addedProductList} for:item="record" for:index="index">
+                            <tr key={record.Id}>
+                                <td>
+                                    {record.addedProdSerialNo}.
+                                </td>
+                                <td style="white-space: normal;">
+                                    {record.Name}
+                                </td>
+                                <td style="white-space: normal;">
+                                    {record.ProductCode}
+                                </td>
+                                <td>
+                                    <div style="margin-top: -20%;">
+                                        <lightning-input type="number" name="" label="" data-id={record.Id} data-index={index} value={record.Quantity__c} onchange={populateQuantity}></lightning-input>
+                                    </div>
+                                </td>
+                                <td>
+                                    <template for:each={record.ProductItems} for:item="prodItem" for:index="itemIndex">
+                                        <template if:true={prodItem.isVanLocation}>
+                                            {prodItem.Minimum_Quantity__c}
+                                        </template>
+                                    </template>                                        
+                                </td>
+                                <td>
+                                    <template for:each={record.ProductItems} for:item="prodItem" for:index="itemIndex">
+                                        <template if:true={prodItem.isVanLocation}>
+                                            {prodItem.QuantityOnHand}
+                                        </template>
+                                    </template>                                        
+                                </td>
+                                <td>
+                                    {record.Quantity_Available__c}
+                                </td>
+                                <td>
+                                    <span class="slds-media__figure slds-listbox__option-icon">
+                                        <span class="slds-icon_container">
+                                            <lightning-icon icon-name="utility:delete" size="small" data-name="removeaddedProducts" data-id={record.Id} data-index={index} onclick={onRemovingSelected}></lightning-icon>
+                                        </span>
+                                    </span>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+                <div style="margin: 1%;text-align: center;margin-bottom:1%">
+                    <template if:true={showSubmitSpinner}>
+                        <lightning-spinner alternative-text="Ordering..." variant="brand"> </lightning-spinner>
+                    </template>
+                    <lightning-button variant="brand" label="Order Now" title="Order Parts" onclick={handleSubmit} class="slds-m-left_x-small"></lightning-button>
+                </div>
+            </div>
+        </template>
+        <div style="text-align: center;margin: 1%;">
+            <span>
+                <lightning-button variant="brand" disabled={isDisabled} label={buttonLabel} title="All Products" onclick={handleShowAllProducts} class="slds-m-left_x-small"></lightning-button>
+            </span>
+            <span style="margin-left: 2%;">
+                <lightning-button variant="brand" disabled={isDisabled2} label={buttonLabel2} title="Products w/ Min Qty" onclick={handleMinQtyProds} class="slds-m-left_x-small"></lightning-button>
+            </span>
+        </div>
+        <template if:true={showAllProducts}>
+            <p style="font-size: medium;font-weight: bold;margin-left:1%;margin-top:2%;">
+                All Products
+            </p>
+            <div class="slds-scrollable">
+                <table id="table3" class="slds-table slds-table_bordered slds-table_cell-buffer" style="max-width: 100% !important;">
+                    <thead>
+                        <tr class="slds-text-title_caps">
+                            <th style="width: 5%;"></th>
+                            <th style="width: 35%;">
+                                <div>Product</div>
+                            </th>
+                            <th style="width: 10%;">
+                                <div>Product Code</div>
+                            </th>
+                            <th style="width: 10%;">
+                                <div>Quantity</div>
+                            </th>
+                            <th style="width: 10%;">
+                                <div>Min Qty</div>
+                            </th>
+                            <th style="width: 10%;">
+                                <div>Van Qty</div>
+                            </th>
+                            <th style="width: 10%;">
+                                <div>WHSE Qty</div>
+                            </th>
+                            <th style="width: 10%;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template for:each={allCubProductList} for:item="record" for:index="index">
+                            <tr key={record.Id}>
+                                <td>
+                                    {record.allCubSerialNo}.
+                                </td>
+                                <td style="white-space: normal;">
+                                    {record.Name}
+                                </td>
+                                <td style="white-space: normal;">
+                                    {record.ProductCode}
+                                </td>
+                                <td>
+                                    <div style="margin-top: -20%;">
+                                        <lightning-input type="number" name="" label="" data-id={record.Id} data-index={index} value={record.Quantity__c} onchange={populateQuantity}></lightning-input>
+                                    </div>
+                                </td>
+                                <td>
+                                    <template for:each={record.ProductItems} for:item="prodItem" for:index="itemIndex">
+                                        <template if:true={prodItem.isVanLocation}>
+                                            {prodItem.Minimum_Quantity__c}
+                                        </template>
+                                    </template>                                        
+                                </td>
+                                <td>
+                                    <template for:each={record.ProductItems} for:item="prodItem" for:index="itemIndex">
+                                        <template if:true={prodItem.isVanLocation}>
+                                            {prodItem.QuantityOnHand}
+                                        </template>
+                                    </template>                                        
+                                </td>
+                                <td>
+                                    {record.Quantity_Available__c}
+                                </td>
+                                <td>
+                                    <template if:false={record.isSelected}>
+                                        <span class="slds-media__figure slds-listbox__option-icon">
+                                            <span class="slds-icon_container">
+                                                <lightning-icon icon-name="standard:task2" size="small" data-name="allProducts" data-id={record.Id} data-index={index} onclick={onRecordSelection}></lightning-icon>
+                                            </span>
+                                        </span>
+                                    </template>
+                                    <template if:true={record.isSelected}>
+                                        <span class="slds-media__figure slds-listbox__option-icon">
+                                            <span class="slds-icon_container">
+                                                <lightning-icon icon-name="utility:delete" size="small" data-id={record.Id} data-index={index} onclick={onRemovingSelected}></lightning-icon>
+                                            </span>
+                                        </span>
+                                    </template>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+                <template if:true={stillProdsExists}>
+                    <p style="margin: 1%;">
+                        <a onclick={handleClickMore}>Show more...</a>
+                    </p>
+                </template>
+            </div>
+        </template>
+        <template if:true={showMinQtyProds}>
+            <p style="font-size: medium;font-weight: bold;margin-left:1%;margin-top:2%;">
+                Products w/ Min Qty
+            </p>
+            <div class="slds-scrollable">
+                <table id="table4" class="slds-table slds-table_bordered slds-table_cell-buffer" style="max-width: 100% !important;">
+                    <thead>
+                        <tr class="slds-text-title_caps">
+                            <th style="width: 5%;"></th>
+                            <th style="width: 35%;">
+                                <div>Product</div>
+                            </th>
+                            <th style="width: 10%;">
+                                <div>Product Code</div>
+                            </th>
+                            <th style="width: 10%;">
+                                <div>Quantity</div>
+                            </th>
+                            <th style="width: 10%;">
+                                <div>Min Qty</div>
+                            </th>
+                            <th style="width: 10%;">
+                                <div>Van Qty</div>
+                            </th>
+                            <th style="width: 10%;">
+                                <div>WHSE Qty</div>
+                            </th>
+                            <th style="width: 10%;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template for:each={minQtyProdList} for:item="record" for:index="index">
+                            <tr key={record.Id}>
+                                <td>
+                                    {record.minQtySerialNo}.
+                                </td>
+                                <td style="white-space: normal;">
+                                    {record.Name}
+                                </td>
+                                <td style="white-space: normal;">
+                                    {record.ProductCode}
+                                </td>
+                                <td>
+                                    <div style="margin-top: -20%;">
+                                        <lightning-input type="number" name="" label="" data-id={record.Id} data-index={index} value={record.Quantity__c} onchange={populateQuantity}></lightning-input>
+                                    </div>
+                                </td>
+                                <td>
+                                    <template for:each={record.ProductItems} for:item="prodItem" for:index="itemIndex">
+                                        <template if:true={prodItem.isVanLocation}>
+                                            {prodItem.Minimum_Quantity__c}
+                                        </template>
+                                    </template>                                        
+                                </td>
+                                <td>
+                                    <template for:each={record.ProductItems} for:item="prodItem" for:index="itemIndex">
+                                        <template if:true={prodItem.isVanLocation}>
+                                            {prodItem.QuantityOnHand}
+                                        </template>
+                                    </template>                                        
+                                </td>
+                                <td>
+                                    {record.Quantity_Available__c}
+                                </td>
+                                <td>
+                                    <template if:false={record.isSelected}>
+                                        <span class="slds-media__figure slds-listbox__option-icon">
+                                            <span class="slds-icon_container">
+                                                <lightning-icon icon-name="standard:task2" size="small" data-name="minQtyProds" data-id={record.Id} data-index={index} onclick={onRecordSelection}></lightning-icon>
+                                            </span>
+                                        </span>
+                                    </template>
+                                    <template if:true={record.isSelected}>
+                                        <span class="slds-media__figure slds-listbox__option-icon">
+                                            <span class="slds-icon_container">
+                                                <lightning-icon icon-name="utility:delete" size="small" data-id={record.Id} data-index={index} onclick={onRemovingSelected}></lightning-icon>
+                                            </span>
+                                        </span>
+                                    </template>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+                <template if:true={stillProdsExists2}>
+                    <p style="margin: 1%;">
+                        <a onclick={handleClickMore2}>Show more...</a>
+                    </p>
+                </template>
+            </div>
+        </template>
+    </template>
+</template>

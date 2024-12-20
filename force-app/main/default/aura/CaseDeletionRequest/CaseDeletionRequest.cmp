@@ -1,0 +1,53 @@
+<aura:component controller="ProductManagement" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" >
+	<aura:handler name="init" value="{!this}" action="{!c.myAction}"/>
+    <aura:attribute name="recordId" type="string"/>
+    <aura:attribute name="confirmDelete" type="boolean" default="false"/>
+    <aura:attribute name="loadSpinner" type="boolean" default="false"/>
+    <aura:attribute name="CaseRecord" type="Case"/>
+    <aura:attribute name="showRequestButton" type="boolean" default="false"/>
+    <aura:if isTrue="{!v.loadSpinner}">
+        <lightning:spinner variant="brand" size="large"/>
+    </aura:if>
+    <div>
+        <div style="text-align:right;background-color:white;">
+            <aura:if isTrue="{!or(v.CaseRecord.Service_Type__c == 'Onsite Labor Only', v.CaseRecord.Service_Type__c == 'Onsite IMAC')}">
+                <button style="margin: 5px 5px 5px 0;color:white;" class="slds-button slds-button_brand" onclick="{!c.orderPart}">Order Part</button>
+            </aura:if>
+            <aura:if isTrue="{!v.showRequestButton}">
+                <button style="margin: 5px 5px 5px 0;color:white;" class="slds-button slds-button_brand" onclick="{!c.confirmSubmit}">Request Cancellation</button>
+            </aura:if>
+        </div>
+        <aura:if isTrue="{!v.confirmDelete}">
+            <!-- Modal/Popup Box starts here-->
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <!-- Modal/Popup Box Header Starts here-->
+                    <header class="slds-modal__header">
+                        <lightning:buttonIcon iconName="utility:close"
+                                              onclick="{! c.closeModel }"
+                                              alternativeText="close"
+                                              variant="bare-inverse"
+                                              class="slds-modal__close"/>
+                            <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Confirm Cancellation</h2>
+                    </header>
+                    <!--Modal/Popup Box Body Starts here-->
+                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1" style="height:20%;font-size: 20px;">
+                        Are you sure for submit the request for Cancellation?
+                    </div>
+                    <!--Modal/Popup Box Footer Starts here-->
+                    <footer class="slds-modal__footer">
+                        <lightning:button variant="neutral"
+                                          label="Cancel"
+                                          title="Cancel"
+                                          onclick="{! c.closeModel }"/>
+                        <lightning:button variant="neutral"
+                                          label="Yes"
+                                          title="Yes"
+                                          onclick="{! c.submitDeletionReq }"/>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </aura:if>
+    </div>
+</aura:component>

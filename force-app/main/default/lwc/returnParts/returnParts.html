@@ -1,0 +1,348 @@
+<template>
+    <div style="margin-top: 2%;">
+        <span class="slds-media__figure slds-listbox__option-icon" style="float: right;outline-style:auto;">
+            <span class="slds-icon_container">
+                <lightning-icon icon-name="utility:refresh" size="small" onclick={refreshLists}></lightning-icon>
+            </span>
+        </span>
+        <template if:true={showSpinnerOnRefresh}>
+            <lightning-spinner alternative-text="Loading..." variant="brand" style="position: fixed;"> </lightning-spinner>
+        </template>
+    </div>
+    <br></br>
+    <div data-key="searchdiv" class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none">
+        <input type="text" data-name="searchProdInput" value={searchKey} onkeyup={handleKeyChange} class="slds-input slds-combobox__input slds-has-focus" id="combobox-id-2" aria-autocomplete="list" aria-controls="listbox-id-2" role="textbox" placeholder="Search Products..." />
+        <span class="slds-icon_container slds-icon-utility-search slds-input__icon slds-input__icon_right">
+            <lightning-icon icon-name="utility:search" size="xx-Small" class="slds-icon slds-icon slds-icon_x-small slds-icon-text-default" aria-hidden="true"></lightning-icon>
+        </span>
+    </div>
+    <template if:true={recordsPresent}>
+        <div id="listbox-id-2-venu" data-key="dropdownresult" class="slds-show slds-dropdown slds-dropdown_length-with-icon-7 slds-dropdown_fluid" role="listbox">
+            <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                <template for:each={recordsListOnSearch} for:item="record" for:index="index">
+                    <li data-id={record.Id} data-name="returnSearhedProduct" data-index={index} key={record.Id} onclick={onRecordSelection} role="presentation" class="slds-listbox__item">
+                        <div data-key={record.Id} data-name={record.Name} class="slds-media slds-listbox__option slds-listbox__option_entity slds-listbox__option_has-meta" role="option">
+                            <span class="slds-media__figure slds-listbox__option-icon">
+                                <span class="slds-icon_container">
+                                    <lightning-icon icon-name="standard:product" size="small"></lightning-icon>
+                                </span>
+                            </span>
+                            <span class="slds-media__body">
+                                <span data-key={record.Id} data-name={record.Name} class="slds-listbox__option-text slds-listbox__option-text_entity" style="white-space: normal;">{record.Name}</span>
+                                <span data-key={record.Id} data-name={record.Name} class="slds-listbox__option-text slds-listbox__option-text_entity" style="white-space: normal;">{record.ProductCode}</span>
+                            </span>
+                        </div>
+                    </li>
+                </template>
+            </ul>
+        </div>
+    </template>
+    <br></br>
+    <template if:true={returnProdExists}>
+        <p style="font-size: medium;font-weight: bold;margin-top:1%">
+            Products to be returned:
+        </p>
+        <div class="slds-scrollable" style="width:100%;margin-top:1%">
+            <table id="table4" class="slds-table slds-table_bordered slds-table_cell-buffer" style="width: 100%;">
+                <thead>
+                    <tr class="slds-text-title_caps">
+                        <th style="width: 3%;"></th>
+                        <th style="width: 77%;">
+                            <div>Product</div>
+                        </th>
+                        <th style="width: 5%;">
+                            <div>Code</div>
+                        </th>
+                        <th style="width: 5%;">
+                            <div>Return Qty</div>
+                        </th>
+                        <th style="width: 5%;">
+                            <div>Van Qty</div>
+                        </th>
+                        <th style="width: 5%;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template for:each={returnPartsList} for:item="record" for:index="index">
+                        <tr key={record.Id}>
+                            <td>
+                                {record.returnSerialNo}.
+                            </td>
+                            <template if:true={record.isVanPart}>
+                                <td  style="white-space: normal;">
+                                    {record.Product2.Name}
+                                </td>
+                                <td  style="white-space: normal;">
+                                    {record.Product_Code__c}
+                                </td>
+                                <td>
+                                    <div style="display: flex;">
+                                        <span style="margin-right:5%;margin-left:-3%;">
+                                            <span class="slds-media__figure slds-listbox__option-icon">
+                                                <span class="slds-icon_container">
+                                                    <lightning-icon icon-name="utility:dash" size="x-small" data-name="decreaseQty" data-id={record.Product2Id} data-index={index} onclick={populateQuantity}></lightning-icon>
+                                                </span>
+                                            </span>
+                                        </span>
+                                        <span style="margin-right:12%;">
+                                            {record.QuantityOnHand}
+                                        </span>
+                                        <span>
+                                            <span class="slds-media__figure slds-listbox__option-icon">
+                                                <span class="slds-icon_container">
+                                                    <lightning-icon icon-name="utility:add" size="x-small" data-name="increaseQty" data-id={record.Product2Id} data-index={index} onclick={populateQuantity}></lightning-icon>
+                                                </span>
+                                            </span>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    {record.originalQty}
+                                </td>
+                                <td>
+                                    <template if:true={record.isSelected}>
+                                        <span class="slds-media__figure slds-listbox__option-icon">
+                                            <span class="slds-icon_container">
+                                                <lightning-icon icon-name="utility:delete" size="small" data-name="removeVanPart" data-id={record.Product2Id} data-index={index} onclick={onRemovingSelected}></lightning-icon>
+                                            </span>
+                                        </span>
+                                    </template>
+                                </td>
+                            </template>
+                            <template if:false={record.isVanPart}>
+                                <td  style="white-space: normal;">
+                                    {record.Name}
+                                </td>
+                                <td  style="white-space: normal;">
+                                    {record.ProductCode}
+                                </td>
+                                <td>
+                                    <div style="display: flex;">
+                                        <span style="margin-right:5%;margin-left:-3%;">
+                                            <span class="slds-media__figure slds-listbox__option-icon">
+                                                <span class="slds-icon_container">
+                                                    <lightning-icon icon-name="utility:dash" size="x-small" data-name="decreaseQty" data-id={record.Id} data-index={index} onclick={populateQuantity}></lightning-icon>
+                                                </span>
+                                            </span>
+                                        </span>
+                                        <span style="margin-right:12%;">
+                                            {record.Quantity__c}
+                                        </span>
+                                        <span>
+                                            <span class="slds-media__figure slds-listbox__option-icon">
+                                                <span class="slds-icon_container">
+                                                    <lightning-icon icon-name="utility:add" size="x-small" data-name="increaseQty" data-id={record.Id} data-index={index} onclick={populateQuantity}></lightning-icon>
+                                                </span>
+                                            </span>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    {record.originalQty}
+                                </td>
+                                <td>
+                                    <template if:true={record.isSelected}>
+                                        <span class="slds-media__figure slds-listbox__option-icon">
+                                            <span class="slds-icon_container">
+                                                <lightning-icon icon-name="utility:delete" size="small" data-name="removeVanPart" data-id={record.Id} data-index={index} onclick={onRemovingSelected}></lightning-icon>
+                                            </span>
+                                        </span>
+                                    </template>
+                                </td>
+                            </template>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </div>
+        <div style="text-align: center;margin-top:5%">
+            <span>
+                <lightning-button variant="brand" disabled={returnIsDisabled} label="Return Parts" title="Return Parts" onclick={handleReturnParts} class="slds-m-left_x-small"></lightning-button>
+            </span>
+        </div>
+        <br></br>
+    </template>
+    <template if:false={hasVanParts}>
+        <p style="font-size: medium;font-weight: bold;">
+            Products Not Found In Van
+        </p>
+    </template>
+    <template if:true={hasVanParts}>
+        <p style="font-size: medium;font-weight: bold;margin-top:1%">
+            Products In Van:
+        </p>
+        <div class="slds-scrollable" style="width:100%;margin-top:1%">
+            <table id="table5" class="slds-table slds-table_bordered slds-table_cell-buffer" style="width: 100%;">
+                <thead>
+                    <tr class="slds-text-title_caps">
+                        <th style="width: 3%;"></th>
+                        <th style="width: 77%;">
+                            <div>Product</div>
+                        </th>
+                        <th style="width: 5%;">
+                            <div>Code</div>
+                        </th>
+                        <th style="width: 5%;">
+                            <div>Return Qty</div>
+                        </th>
+                        <th style="width: 5%;">
+                            <div>Van Qty</div>
+                        </th>
+                        <th style="width: 5%;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template for:each={vanPartsList} for:item="record" for:index="index">
+                        <tr key={record.Id}>
+                            <td>
+                                {record.vanSerialNo}.
+                            </td>
+                            <td  style="white-space: normal;">
+                                {record.Product2.Name}
+                            </td>
+                            <td  style="white-space: normal;">
+                                {record.Product_Code__c}
+                            </td>
+                            <td>
+                                <div style="display: flex;">
+                                    <span style="margin-right:5%;margin-left:-3%;">
+                                        <span class="slds-media__figure slds-listbox__option-icon">
+                                            <span class="slds-icon_container">
+                                                <lightning-icon icon-name="utility:dash" size="x-small" data-name="decreaseQty" data-id={record.Product2Id} data-index={index} onclick={populateQuantity}></lightning-icon>
+                                            </span>
+                                        </span>
+                                    </span>
+                                    <span style="margin-right:12%;">
+                                        {record.QuantityOnHand}
+                                    </span>
+                                    <span>
+                                        <span class="slds-media__figure slds-listbox__option-icon">
+                                            <span class="slds-icon_container">
+                                                <lightning-icon icon-name="utility:add" size="x-small" data-name="increaseQty" data-id={record.Product2Id} data-index={index} onclick={populateQuantity}></lightning-icon>
+                                            </span>
+                                        </span>
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                {record.originalQty}
+                            </td>
+                            <td>
+                                <template if:false={record.isSelected}>
+                                    <!--<lightning-button variant="brand" label="RETURN" data-name="returnVanPart" data-id={record.Product2Id} data-index={index} onclick={onRecordSelection} class="slds-m-left_x-small"></lightning-button>-->
+                                    <span class="slds-media__figure slds-listbox__option-icon">
+                                        <span class="slds-icon_container">
+                                            <lightning-icon icon-name="standard:task2" size="small" data-name="returnVanPart" data-id={record.Product2Id} data-index={index} onclick={onRecordSelection}></lightning-icon>
+                                        </span>
+                                    </span>
+                                </template>
+                                <template if:true={record.isSelected}>
+                                    <span class="slds-media__figure slds-listbox__option-icon">
+                                        <span class="slds-icon_container">
+                                            <lightning-icon icon-name="utility:delete" size="small" data-name="removeVanPart" data-id={record.Product2Id} data-index={index} onclick={onRemovingSelected}></lightning-icon>
+                                        </span>
+                                    </span>
+                                </template>
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </div>
+    </template>
+    <br></br>
+    <div style="text-align: center">
+        <span>
+            <lightning-button variant="brand" disabled={isDisabled} label={buttonLabel} title="Show All Products For This Customer" onclick={handleShowAllProducts} class="slds-m-left_x-small"></lightning-button>
+        </span>
+    </div>
+    <br></br>
+    <template if:true={showAllProducts}>
+        <div class="slds-scrollable" style="width:100%;">
+            <table id="table3" class="slds-table slds-table_bordered slds-table_cell-buffer" style="width: 100%;">
+                <thead>
+                    <tr class="slds-text-title_caps">
+                        <th style="width: 3%;"></th>
+                        <th style="width: 77%;">
+                            <div>Product</div>
+                        </th>
+                        <th style="width: 5%;">
+                            <div>Code</div>
+                        </th>
+                        <th style="width: 5%;">
+                            <div>Return Qty</div>
+                        </th>
+                        <th style="width: 5%;">
+                            <div>Van Qty</div>
+                        </th>
+                        <th style="width: 5%;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template for:each={allProductList} for:item="record" for:index="index">
+                        <tr key={record.Id}>
+                            <td>
+                                {record.allProdSerialNo}.
+                            </td>
+                            <td  style="white-space: normal;">
+                                {record.Name}
+                            </td>
+                            <td  style="white-space: normal;">
+                                {record.ProductCode}
+                            </td>
+                            <td>
+                                <div style="display: flex;">
+                                    <span style="margin-right:5%;margin-left:-3%;">
+                                        <span class="slds-media__figure slds-listbox__option-icon">
+                                            <span class="slds-icon_container">
+                                                <lightning-icon icon-name="utility:dash" size="x-small" data-name="decreaseQty" data-id={record.Id} data-index={index} onclick={populateQuantity}></lightning-icon>
+                                            </span>
+                                        </span>
+                                    </span>
+                                    <span style="margin-right:12%;">
+                                        {record.Quantity__c}
+                                    </span>
+                                    <span>
+                                        <span class="slds-media__figure slds-listbox__option-icon">
+                                            <span class="slds-icon_container">
+                                                <lightning-icon icon-name="utility:add" size="x-small" data-name="increaseQty" data-id={record.Id} data-index={index} onclick={populateQuantity}></lightning-icon>
+                                            </span>
+                                        </span>
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                <template for:each={record.ProductItems} for:item="prodItem" for:index="itemIndex">
+                                    <template if:true={prodItem.isVanLocation}>
+                                        {prodItem.originalQty}
+                                    </template>
+                                </template>
+                            </td>
+                            <td>
+                                <template if:false={record.isSelected}>
+                                    <!--<lightning-button variant="brand" label="RETURN" data-name="returnNonVanPart" data-id={record.Id} data-index={index} onclick={onRecordSelection} class="slds-m-left_x-small"></lightning-button>-->
+                                    <span class="slds-media__figure slds-listbox__option-icon">
+                                        <span class="slds-icon_container">
+                                            <lightning-icon icon-name="standard:task2" size="small" data-name="returnNonVanPart" data-id={record.Id} data-index={index} onclick={onRecordSelection}></lightning-icon>
+                                        </span>
+                                    </span>
+                                </template>
+                                <template if:true={record.isSelected}>
+                                    <span class="slds-media__figure slds-listbox__option-icon">
+                                        <span class="slds-icon_container">
+                                            <lightning-icon icon-name="utility:delete" size="small" data-name="removeNonVanPart" data-id={record.Id} data-index={index} onclick={onRemovingSelected}></lightning-icon>
+                                        </span>
+                                    </span>
+                                </template>
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+            <p style="margin-top: 1%;">
+                <a onclick={handleClickMore}>Show more...</a>
+            </p>
+            <br></br>
+        </div>
+    </template>
+</template>

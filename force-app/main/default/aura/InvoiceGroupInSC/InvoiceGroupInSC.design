@@ -1,0 +1,5 @@
+<design:component>
+    <design:attribute name = "value" description = "Invoice Group"/>
+    <design:attribute name = "label" description = "label"/>
+    <design:attribute name = "required" description = "Cannot be null"/>
+</design:component>

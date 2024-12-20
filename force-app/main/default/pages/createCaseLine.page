@@ -1,0 +1,15 @@
+<apex:page standardController="Case">
+    <apex:includeLightning />
+    <div id="productManagement"></div>
+    <script>
+    $Lightning.use("c:ProductManagementApp", function() {
+        $Lightning.createComponent("c:ProductManagement",
+                                   { 
+                                   },
+                                   "productManagement",
+                                   function(component) {
+                                       
+                                   });
+    });
+    </script>
+</apex:page>

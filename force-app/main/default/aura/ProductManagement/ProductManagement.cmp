@@ -1,0 +1,334 @@
+<aura:component controller="ProductManagement" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction,lightning:actionOverride" access="global" >
+    <aura:handler name="init" value="{!this}" action="{!c.myAction}"/>
+    <aura:attribute name="workOrderOld" type="WorkOrder"/>
+    <aura:attribute name="workOrderNew" type="WorkOrder"/>
+    <aura:attribute name="redHotWO" type="WorkOrder"/>
+    <aura:attribute name="CaseRec" type="Case"/>
+    <aura:attribute name="CasesToSave" type="Case[]" default="[]"/>
+    <aura:attribute name="CaseRec1" type="Case" default="{}"/>
+    <aura:attribute name="AccId" type="string" default=""/>
+    <aura:attribute name="loadSpinner" type="boolean" default="false"/>
+    <aura:attribute name="saveError" type="boolean" default="false"/>
+    <aura:attribute name="saveSuccess" type="boolean" default="false"/>
+    <aura:attribute name="saveMessage" type="string" default=""/> 
+    <aura:attribute name="repairItem" type="boolean" default="false"/>
+    <aura:attribute name="imacChk" type="boolean" default="false"/>
+    <aura:attribute name="openTechNotes" type="boolean" default="false"/>
+    <aura:attribute name="openNotes" type="boolean" default="false"/>
+    <aura:attribute name="tchNotes" type="string" default=""/>
+    <aura:attribute name="csNotes" type="string" default=""/>
+    <aura:attribute name="indxTchNts" type="integer" default=""/>
+    <aura:attribute name="supportTeams" type="Support_Team__c[]"/>
+    <aura:attribute name="timezone" type="string" default=""/>
+    <aura:attribute name="ProblemCodeOptions" type="Code__c[]" default=""/>
+    <aura:attribute name="viewIndex" type="integer" default="0"/>
+    <aura:attribute name="createRedHotOrder" type="boolean" default="false"/>
+    <aura:if isTrue="{!v.loadSpinner}">
+        <lightning:spinner variant="brand" size="large"/>
+    </aura:if>
+    <ltng:require styles="{!$Resource.ModalWidthPortal}"/>
+    <aura:if isTrue="{!or(v.openTechNotes, v.openNotes)}">
+        <!-- Modal/Popup Box starts here-->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <!-- Modal/Popup Box Header Starts here-->
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close"
+                                          onclick="{! c.closeModel }"
+                                          alternativeText="close"
+                                          variant="bare-inverse"
+                                          class="slds-modal__close"/>
+                    <aura:if isTrue="{!v.openTechNotes}">
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Tech Notes</h2>
+                    </aura:if>
+                    <aura:if isTrue="{!v.openNotes}">
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Notes</h2>
+                    </aura:if>
+                </header>
+                <!--Modal/Popup Box Body Starts here-->
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1" style="height:55%;">
+                    <aura:if isTrue="{!v.openTechNotes}">
+                        <lightning:recordEditForm objectApiName="Case">
+                            <lightning:inputField fieldName="Tech_Notes__c" variant="label-hidden" value="{!v.tchNotes}"/>
+                        </lightning:recordEditForm>
+                        <!-- lightning:textarea variant="label-hidden" value="{!v.tchNotes}" style="height:190px;" /-->
+                    </aura:if>
+                    <aura:if isTrue="{!v.openNotes}">
+                        <lightning:textarea variant="label-hidden" value="{!v.csNotes}" style="height:190px;"/>
+                    </aura:if>
+                </div>
+                <!--Modal/Popup Box Footer Starts here-->
+                <footer class="slds-modal__footer">
+                    <aura:if isTrue="{!v.openTechNotes}">
+                        <lightning:button variant="neutral"
+                                          label="Close"
+                                          title="Close"
+                                          onclick="{!c.closeModel}"/>
+                        <lightning:button variant="brand"
+                                          label="Save"
+                                          title="Save"
+                                          onclick="{!c.enterTechNotes}"/>
+                    </aura:if>
+                    <aura:if isTrue="{!v.openNotes}">
+                        <lightning:button variant="neutral"
+                                          label="Cancel"
+                                          title="Cancel"
+                                          onclick="{! c.closeModel }"/>
+                        <lightning:button variant="brand"
+                                          label="Save"
+                                          title="Save"
+                                          onclick="{!c.enterNotes}"/>
+                    </aura:if>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if>
+    <!-- div style="padding-top:10px">
+        <div style="width:9%;float: left;text-align: right;;margin-left: 1%;" class="slds-text-heading_medium">Location</div>
+        <div style="float:left;margin-top: 0.5%;margin-left: 1%;">
+            <lightning:recordEditForm objectApiName="Case">
+                <lightning:inputField onchange="{!c.addAccInCases}" disabled="{!v.workOrderOld != null}" class="searchacc" style="float:right; width:300px;margin-top: -3%; margin-right:20px;" fieldName="Store__c" variant="label-hidden" value="{!v.AccId}"/>
+            </lightning:recordEditForm>
+        </div>
+    </div -->
+    <aura:if isTrue="{!v.saveError}">
+        <ui:message title="Error!" severity="error" closable="true">
+            <ui:outputRichText value="{!v.saveMessage}"/>
+        </ui:message>
+    </aura:if>
+    <aura:if isTrue="{!v.saveSuccess}">
+        <ui:message title="Success!" severity="confirm" closable="true">
+            <ui:outputRichText value="{!v.saveMessage}"/>
+        </ui:message>
+    </aura:if>
+    <div style="margin-top:30px;">
+        <div class="slds-page-header__row">
+            <div class="slds-section slds-is-open" style="background-color:white;width:100%;">
+                <div style="text-align:center;font-size: 22px;">
+                    Case Information
+                </div>
+                <div class="slds-section__content">
+                    <div class="slds-form__row">
+                        <div class="slds-form__item">
+                            <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly slds-form-element_edit slds-grow slds-hint-parent override--slds-form-element">
+                                <span class="slds-form-element__label">Location</span>
+                                <div class="slds-form-element__control">
+                                    <!-- disabled="{!or(v.workOrderOld != null, v.createRedHotOrder)}" user can not change location if component is from Revisit or Create red hot order-->
+                                    <lightning:recordEditForm objectApiName="Case">
+                                        <lightning:inputField onchange="{!c.addAccInCases}" variant="label-hidden" disabled="{!or(v.workOrderOld != null, v.createRedHotOrder)}" class="searchacc" fieldName="Store__c" value="{!v.AccId}"/>
+                                    </lightning:recordEditForm>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-form__item">
+                            <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly slds-form-element_edit slds-grow slds-hint-parent override--slds-form-element">
+                                <span class="slds-form-element__label">Out of Scope</span>
+                                <div class="slds-form-element__control">
+                                    <lightning:input type="checkbox" onchange="{!c.oosPriorityChng}" variant="label-hidden" checked="{!v.CaseRec.Out_Of_Scope__c}"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-form__row">
+                        <div class="slds-form__item">
+                            <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly slds-form-element_edit slds-grow slds-hint-parent override--slds-form-element">
+                                <span class="slds-form-element__label">Product</span>
+                                <div class="slds-form-element__control">
+                                    <lightning:recordEditForm objectApiName="Case">
+                                        <lightning:inputField fieldName="Account_Product__c" variant="label-hidden" onchange="{!c.assginProducts}" value="{!v.CaseRec.Account_Product__c}"/>
+                                    </lightning:recordEditForm>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-form__item">
+                            <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly slds-form-element_edit slds-grow slds-hint-parent override--slds-form-element">
+                                <span class="slds-form-element__label">Serial Number</span>
+                                <div class="slds-form-element__control">
+                                    <lightning:recordEditForm objectApiName="Case">
+                                        <lightning:inputField class="serlNumber" fieldName="Asset_Number__c" variant="label-hidden" value="{!v.CaseRec.Asset_Number__c}" placeholder="Serial Number"/>
+                                    </lightning:recordEditForm>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <aura:if isTrue="{!or(v.CaseRec.Service_Type__c == 'Advance Exchange (Depot Only)', v.CaseRec.Service_Type__c == 'Advance Exchange + Onsite')}">
+                        <div class="slds-form__row" >
+                            <div class="slds-form__item">
+                                <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly slds-form-element_edit slds-grow slds-hint-parent override--slds-form-element">
+                                    <span class="slds-form-element__label">Product Quantity</span>
+                                    <div class="slds-form-element__control">
+                                        <lightning:recordEditForm objectApiName="Case">
+                                            <lightning:inputField fieldName="Product_Quantity__c" variant="label-hidden" value="{!v.CaseRec.Product_Quantity__c}"/>
+                                        </lightning:recordEditForm>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-form__item">
+                                
+                            </div>
+                        </div>
+                    </aura:if>
+                    <div class="slds-form__row">
+                        <div class="slds-form__item">
+                            <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly slds-form-element_edit slds-grow slds-hint-parent override--slds-form-element">
+                                <span class="slds-form-element__label">Service</span>
+                                <div class="slds-form-element__control">
+                                    <lightning:select label="" variant="label-hidden" class="servRequid" onchange="{!c.serviceTypeCheck}" value="{!v.CaseRec.Service_Type__c}">
+                                        <option value="">---Select---</option>
+                                        <!-- aura:if isTrue="{!cl.HandleCode == 'Parts and Labor'}" -->
+                                        <option value="Advance Exchange (Depot Only)">Part Request</option>
+                                        <!--/aura:if>
+                                <aura:if isTrue="{!or(cl.HandleCode == 'Parts and Labor', cl.HandleCode == 'Consumable')}" -->
+                                        <option value="Advance Exchange + Onsite">Part + Onsite</option>
+                                        <!-- /aura:if>
+                                <aura:if isTrue="{!cl.HandleCode == 'Labor Only In Warranty'}" -->
+                                        <!-- for create red hot order Onsite labor only and onsite IMAC options will not be available -->
+                                        <aura:if isTrue="{!!v.createRedHotOrder}">
+                                            <option value="Onsite Labor Only">Onsite Labor Only</option>
+                                            <!-- /aura:if -->
+                                            <option value="Onsite IMAC">Onsite IMAC</option>
+                                        </aura:if>
+                                    </lightning:select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-form__item">
+                            <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly slds-form-element_edit slds-grow slds-hint-parent override--slds-form-element">
+                                <aura:if isTrue="{!v.CaseRec.Service_Type__c=='Onsite IMAC'}">
+                                    <span class="slds-form-element__label">Preferred Time</span>
+                                    <div class="slds-form-element__control">
+                                        <lightning:recordEditForm objectApiName="Case">
+                                            <lightning:inputField fieldName="Preferred_Time__c" onchange="{!c.setPriority}" variant="label-hidden" value="{!v.CaseRec.Preferred_Time__c}"/>
+                                        </lightning:recordEditForm>
+                                    </div>
+                                </aura:if>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-form__row">
+                        <div class="slds-form__item">
+                            <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly slds-form-element_edit slds-grow slds-hint-parent override--slds-form-element">
+                                <span class="slds-form-element__label">POS Register #</span>
+                                <div class="slds-form-element__control">
+                                    <lightning:recordEditForm objectApiName="Case">
+                                        <lightning:inputField style="width:50%" fieldName="POS_Register_Number__c" variant="label-hidden" value="{!v.CaseRec.POS_Register_Number__c}"/>
+                                    </lightning:recordEditForm>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-form__item">
+                            <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly slds-form-element_edit slds-grow slds-hint-parent override--slds-form-element">
+                                <span class="slds-form-element__label">Incident #</span>
+                                <div class="slds-form-element__control">
+                                    <lightning:recordEditForm objectApiName="Case">
+                                        <lightning:inputField fieldName="Incident__c" variant="label-hidden" value="{!v.CaseRec.Incident__c}"/>
+                                    </lightning:recordEditForm>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-form__row">
+                        <div class="slds-form__item">
+                            <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly slds-form-element_edit slds-grow slds-hint-parent override--slds-form-element">
+                                <span class="slds-form-element__label">Priority</span>
+                                <div class="slds-form-element__control">
+                                    <aura:if isTrue="{!and(v.CaseRec.Service_Type__c != 'Advance Exchange (Depot Only)', v.CaseRec.Service_Type__c != 'Advance Exchange + Onsite')}">
+                                        <!-- and(cl.Service_Type__c != 'Onsite IMAC', ) priority lable for Onsite IMAC -->
+                                        <aura:if isTrue="{!!v.CaseRec.Out_Of_Scope__c}">
+                                            <lightning:select label="" variant="label-hidden" class="servRequid" value="{!v.CaseRec.Priority}">
+                                                <!-- for revisit work order only Severity 2 option should be available -->
+                                                <aura:if isTrue="{!v.workOrderOld == null}">
+                                                    <option value="">---Select---</option>
+                                                    <option value="Severity 1">Severity 1</option>
+                                                </aura:if>
+                                                <option value="Severity 2">Severity 2</option>
+                                            </lightning:select>
+                                            <aura:set attribute="else">
+                                                {!v.CaseRec.Priority}
+                                            </aura:set>
+                                        </aura:if>
+                                    </aura:if>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-form__item">
+                            <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly slds-form-element_edit slds-grow slds-hint-parent override--slds-form-element">
+                                <span class="slds-form-element__label">Problem Code</span>
+                                <div class="slds-form-element__control">
+                                    <lightning:select name="{! 'probCodeSelect-'+index }" class="servRequid" required="false" onchange="{!c.setProblemCode}" variant="label-hidden">
+                                        <option value="">choose one...</option>
+                                        <aura:iteration items="{!v.ProblemCodeOptions}" var="problemCode">
+                                            <option value="{!problemCode.Id}">{!problemCode.Name}</option>
+                                        </aura:iteration>
+                                    </lightning:select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-form__row">
+                        <div class="slds-form__item">
+                            <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly slds-form-element_edit slds-grow slds-hint-parent override--slds-form-element">
+                                <span class="slds-form-element__label">Team</span>
+                                <div class="slds-form-element__control">
+                                    <lightning:select class="servRequid" variant="label-hidden" onchange="{!c.setTechNotes}" value="{!v.CaseRec.Support_Team__c}">
+                                        <option value="">Select Team</option>
+                                        <aura:iteration items="{!v.supportTeams}" var="st">
+                                            <option value="{!st.Id}"  selected="{!st.Id==v.CaseRec.Support_Team__c}">{!st.Name}</option>
+                                        </aura:iteration>
+                                    </lightning:select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-form__item">
+                            <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly slds-form-element_edit slds-grow slds-hint-parent override--slds-form-element">
+                                <span class="slds-form-element__label">Note</span>
+                                <div class="slds-form-element__control">
+                                    <a id="{!index}" onclick="{!c.openNotesPop}">
+                                        <lightning:icon iconName="standard:note" alternativeText="Note" title="Note" />
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <aura:if isTrue="{!v.CaseRec.Service_Type__c != 'Advance Exchange (Depot Only)'}">
+                        <div class="slds-form__row" >
+                            <div class="slds-form__item">
+                                <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly slds-form-element_edit slds-grow slds-hint-parent override--slds-form-element">
+                                    <span class="slds-form-element__label">Tech Note</span>
+                                    <div class="slds-form-element__control">
+                                        <a id="{!index}" onclick="{!c.openTechNotesPop}">
+                                            <lightning:icon iconName="standard:note" alternativeText="Tech Note" title="Tech Note" />
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-form__item">
+                                
+                            </div>
+                        </div>
+                    </aura:if>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="text-align:center;height:40px;margin-top: 1%;">
+        <aura:if isTrue="{!v.viewIndex > 0}">
+            <button class="slds-button slds-button_brand slds-float_left" onclick="{!c.previousCase}">Previous</button>
+        </aura:if>
+        <ul class="slds-button-group-list">
+            <!-- Add product button is available only for Customer community, not for Revisit and Red hot Orders -->
+            <aura:if isTrue="{!and(v.workOrderOld == null, !v.createRedHotOrder)}">
+                <li>
+                    <button class="slds-button slds-button_brand" onclick="{!c.addProduct}">Add Product</button>
+                </li>
+            </aura:if>
+            <li>
+                <button style="margin-left: 5%;" class="slds-button slds-button_brand" onclick="{!c.saveRecords}">Submit</button>
+            </li>
+        </ul>
+        <aura:if isTrue="{!lessthan(v.viewIndex,  (v.CasesToSave.length - 1))}">
+            <button class="slds-button slds-button_brand slds-float_right" onclick="{!c.nextCase}">Next</button>
+        </aura:if>
+    </div>
+</aura:component>

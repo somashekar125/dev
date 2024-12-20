@@ -1,0 +1,99 @@
+<aura:component controller="UpdateReturnOrder" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" >
+    <aura:handler name="init" value="{!this}" action="{!c.myAction}"/>
+    <aura:attribute name="recordId" type="Id"/>
+    <aura:attribute name="returnOrderEdit" type="boolean" default="false"/>
+    <aura:attribute name="isDisabled" type="boolean" default="false"/>
+    <aura:attribute name="retAuth" type="String" default=""/>
+    <aura:attribute name="loadSpinner" type="boolean" default="false"/>
+    <aura:attribute name="fieldTechOwnerExist" type="boolean" default="false"/>
+    <aura:attribute name="roliList" type="ReturnOrderLineItem[]"/>
+    <aura:attribute name="roliExists" type="boolean" default="false"/>
+    <aura:attribute name="roExists" type="boolean" default="false"/>
+    <aura:attribute name="roRec" type="ReturnOrder"/>
+    
+    <aura:if isTrue="{!v.returnOrderEdit}">
+        <aura:if isTrue="{!v.fieldTechOwnerExist}">
+            <div style="height: 500px;">
+                <aura:if isTrue="{!v.loadSpinner}">
+                    <div style="position: relative;">
+                        <lightning:spinner variant="brand" size="medium" style="height: 500px;"/>
+                    </div>
+                </aura:if>
+                <aura:if isTrue="{!v.roExists}">
+                    <span class="slds-media__figure slds-listbox__option-icon" style="float: right;">
+                        <span class="slds-icon_container">
+                            <lightning:buttonIcon iconName="utility:refresh"  onclick="{!c.refreshLists}" alternativeText="Refresh" title="Refresh" />
+                        </span>
+                    </span>
+                    <br></br>
+                    <p style="font-size: medium;font-weight: bold;margin-bottom:2%;">Return Order : {!v.roRec.ReturnOrderNumber}</p>
+                    <div class="flex-container">
+                        <span class="half-width">
+                            <div class="flex-container">
+                                <span class="half-width">Sales Order </span>
+                                <span class="half-width">{!v.roRec.Sales_Order__r.Name}</span>
+                            </div>
+                            <hr class="hr-style"/>
+                        </span>
+                        <span class="half-width">
+                            <div class="flex-container">
+                                <span class="half-width">Status</span>
+                                <span class="half-width">{!v.roRec.Status}</span>
+                            </div>
+                            <hr class="hr-style"/>
+                        </span>
+                    </div>
+                    <div class="flex-container">
+                        <span class="half-width">
+                            <div class="flex-container">
+                                <span class="half-width">Return Authorization</span>
+                                <span class="half-width content">{!v.roRec.Return_Authorization__c}</span>
+                            </div>
+                            <hr class="hr-style"/>
+                        </span>
+                        <span class="half-width">
+                            <div class="flex-container">
+                                <span class="half-width content">Return Tracking Numbers</span>
+                                <span class="half-width content">{!v.roRec.Return_Order_Tracking_Numbers__c}</span>
+                            </div>
+                            <hr class="hr-style"/>
+                        </span>
+                    </div>
+                    <div style="text-align: center;">
+                        <span>
+                            <lightning:button variant="brand" disabled="{!v.isDisabled}" label="Mark As Shipped" title="Save action" onclick="{! c.handleSave }"/>
+                        </span>
+                    </div>
+                </aura:if>
+                <aura:if isTrue="{!v.roliExists}">
+                    <br></br>
+                    <p style="font-size: medium;font-weight: bold;">Return Order Products</p>
+                    <table class="slds-table slds-table_bordered slds-table_striped slds-table_fixed-layout records-table" style="margin-top: 1%;">
+                        <thead>
+                            <tr class="slds-text-title_caps">
+                                <th style="width: 4%;"></th>
+                                <th style="width:66%"><div>Product</div></th>
+                                <th style="width: 30%;"><div>Qty Returned</div></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <aura:iteration items="{!v.roliList}" var="roli" indexVar="index1">
+                                <tr>
+                                    <td>
+                                        {!index1 + 1}.
+                                    </td>
+                                    <td style="white-space: normal;">
+                                        {!roli.Product2.Name}
+                                    </td>
+                                    <td style="text-align: center;white-space: normal;">
+                                        {!roli.QuantityReturned}
+                                    </td>
+                                </tr>
+                            </aura:iteration>
+                        </tbody>
+                    </table>
+                </aura:if>
+            </div>
+        </aura:if>
+    </aura:if>
+</aura:component>

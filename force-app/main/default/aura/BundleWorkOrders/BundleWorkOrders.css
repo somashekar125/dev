@@ -1,0 +1,3 @@
+.THIS lightning-datatable.hideHeadings .dt-outer-container .slds-table_header-fixed_container .slds-scrollable_y .slds-table thead tr {
+    display: none;
+}

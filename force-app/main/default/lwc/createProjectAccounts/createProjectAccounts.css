@@ -1,0 +1,45 @@
+.extra-small-icon {
+    width: 10px; 
+    height: 10px;
+}
+.custom-file-input {
+    position: relative;
+}
+.custom-file-input lightning-input {
+    border: none;
+    background: transparent;
+    outline: none;
+}
+
+.custom-file-input lightning-input .slds-file-selector__dropzone {
+    display: none;
+}
+
+.custom-file-input lightning-input .slds-file-selector__input {
+    padding: 0.5rem; 
+    border: 1px solid #ccc; 
+}
+.slds-icon-text-success{
+    --sds-c-icon-color-foreground-default: green;
+}
+.tooltip-arrow {
+    position: absolute;
+    bottom: -8px;
+    left: 90%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid #011a3c; 
+}
+
+.custom-modal-container {
+    border: 1px solid #d8dde6;
+    border-radius: 5px;
+    box-sizing: border-box;
+    width: auto;
+    height: auto;
+    padding: 0;
+    margin: 0; 
+}

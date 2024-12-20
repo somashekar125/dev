@@ -1,0 +1,134 @@
+<template>
+    <div style="display: flex;padding-left: 1%;padding-right: 1%">
+        <div>
+            <lightning-button label="SHOW ALL" onclick={showAllRecords} variant="brand"></lightning-button>&nbsp;&nbsp;
+        </div>
+        <div style="flex-grow: 1;">
+            <p style="font-size: small; margin-top: 2px;">VISITS TODAY: &nbsp;<span style="font-size: large;"><strong>{todayCount}</strong></span></p>
+        </div>
+        <lightning-input variant="label-hidden" onchange={handleWeekChange} value={weekNum} style="width: 15%;"  placeholder="WEEK"></lightning-input>&nbsp;&nbsp;
+        <div>
+            <lightning-input type="date" variant="label-hidden" style="z-index: 5;" onchange={handleChange} value={selectedDate} placeholder="SELECT DATE"></lightning-input>
+        </div>
+    </div>    
+
+    <!-- Table Section -->
+    <div class="table-container" style="padding-left: 1%;">
+        <template if:true={visitDateTableData}>
+            <div class="table-container" style="height: 300px; overflow: auto; width: 100%;">
+                <table class="slds-table slds-table_bordered slds-table_fixed-layout table-scrollable" style="width: 100%; border: 1px solid gainsboro;">
+                    <thead class="slds-text-title_bold slds-text-align_center" style="position: sticky; top: 0; background: #fff; z-index: 2;width: 100%;">
+                        <tr>
+                            <th colspan="5" style="text-align: center; font-size: large; white-space: nowrap;">VISITS PER DATE</th>
+                        </tr>
+                        <template if:true={visitDateTableData.length}>
+                            <tr style="width: 100%;">
+                                <th style="text-align: center; width: fit-content;white-space:normal;font-size: small;">DATE</th>
+                                <th style="text-align: center; width: fit-content;font-size: small;">VISIT 1</th>
+                                <th style="text-align: center; width: fit-content;font-size: small;">VISIT 2</th>
+                                <th style="text-align: center; width: fit-content;font-size: small;">VISIT 3</th>
+                                <th style="text-align: center; width: fit-content;font-size: small;">TOTAL</th>
+                            </tr>
+                        </template>
+                    </thead>
+                    <tbody>
+                        <template if:true={visitDateTableData.length}>
+                            <template for:each={visitDateTableData} for:item="row">
+                                <tr key={row.id}>
+                                    <td style="text-align: center;width: fit-content;">{row.column1}</td>
+                                    <td style="text-align: center;">{row.column2}</td>
+                                    <td style="text-align: center;">{row.column3}</td>
+                                    <td style="text-align: center;">{row.column4}</td>
+                                    <td style="text-align: center;">{row.column5}</td>
+                                </tr>
+                            </template>
+                        </template>
+                        <template if:false={visitDateTableData.length}>
+                            <tr>
+                                <td colspan="5" style="text-align: center; vertical-align: middle; height: 250px;">
+                                    <p style="font-size: 1.2em; font-weight: bold; white-space: nowrap;">No Visits Scheduled</p>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>                
+        </template>        
+    </div>               
+    
+    <div class="table-container1" style="height: 300px; overflow: auto; width: 100%; padding-left: 1%;">
+        <table class="slds-table slds-table_bordered slds-table_fixed-layout table-scrollable" style="width: 100%; border: 1px solid gainsboro;">
+            <thead class="slds-text-title_bold slds-text-align_center" style="position: sticky; top: 0; background: #fff; z-index: 2;">
+                <tr>
+                    <th colspan="5" style="text-align: center; font-size: large">VISITS PER METROPOLITAN AREA</th>
+                </tr>
+                <template if:true={metroAreaTableData.length}>
+                    <tr>
+                        <th style="width: 20%;font-size: small;">METRO AREA</th>
+                        <th style="text-align: center; width: 16%;font-size: small;">VISIT 1</th>
+                        <th style="text-align: center; width: 16%;font-size: small;">VISIT 2</th>
+                        <th style="text-align: center; width: 16%;font-size: small;">VISIT 3</th>
+                        <th style="text-align: center; width: 16%;font-size: small;">TOTAL</th>
+                    </tr>
+                </template>
+            </thead>
+            <tbody>
+                <template if:true={metroAreaTableData.length}>
+                    <template for:each={metroAreaTableData} for:item="row">
+                        <tr key={row.id}>
+                            <template if:true={metroArea}>
+                                <td title={row.column1} style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;">{row.column1}</td>
+                                <td style="text-align: center;">{row.column2}</td>
+                                <td style="text-align: center;">{row.column3}</td>
+                                <td style="text-align: center;">{row.column4}</td>
+                                <td style="text-align: center;">{row.column5}</td>
+                            </template>
+                        </tr>
+                    </template>
+                </template>
+                <template if:false={metroAreaTableData.length}>
+                    <tr>
+                        <td colspan="5" style="text-align: center; vertical-align: middle; height: 250px;">
+                            <p style="font-size: 1.2em; font-weight: bold; white-space: nowrap;">No Visits Scheduled</p>
+                        </td>
+                    </tr>
+                </template>
+            </tbody>
+        </table>
+    </div>           
+    <!-- <div class="chart-container1" lwc:dom="manual" style="height: 300px;"></div> -->
+    <div style="width: 100%;padding-left: 1%;">
+        <table style="width: 100%; border-collapse: collapse; border: 1px solid #dcdcdc;">
+            <thead style="background-color: #f3f3f3e7;">
+                <tr>
+                    <th colspan="10" style="text-align: center; font-size: large; white-space: nowrap; padding: 6px; border: 1px solid #dcdcdc;">
+                        STORES PER TIMEZONE
+                    </th>
+                </tr> 
+                <template if:true={storePerTimezone.length}>          
+                    <tr style="text-align: center; border: 1px solid #dcdcdc;">
+                        <template for:each={storePerTimezone} for:item="data">
+                            <th key={data.name} style="text-align: center; white-space: nowrap; padding: 6px;font-size: small;">
+                                {data.name}
+                            </th>
+                        </template>
+                    </tr>
+                </template>
+            </thead>
+            <template if:true={storePerTimezone.length}>
+                <tbody>
+                    <tr style="text-align: center;">
+                        <template for:each={storePerTimezone} for:item="data">
+                            <td key={data.name} style="text-align: center; padding: 6px;">
+                                {data.y}
+                            </td>
+                        </template>
+                    </tr>
+                </tbody>
+            </template>
+            <template if:false={storePerTimezone.length}>
+                <p style="text-align: center;font-weight: bold; font-size: 1.2em; padding: 2%;">No Stores Found</p>
+            </template>
+        </table>
+    </div>       
+</template>

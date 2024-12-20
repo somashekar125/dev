@@ -1,0 +1,428 @@
+<apex:page controller="SchedulingMap" showHeader="true" sidebar="true" standardStylesheets="true">
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBCK46eAC8hMKWB-phfZ3JScI-_dOMMZCw"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
+    <apex:stylesheet value="{!URLFOR($Resource.SLDS)}"/>
+    <apex:includeLightning />
+    <apex:slds />
+
+    <style>
+        .ext-strict {
+            background-color: white;
+        }
+
+        #map {
+            height: auto;
+            width: 65%;
+            border: 1px solid gainsboro;
+            border-radius: 5px;
+        }
+
+        #lwcContainer {
+            height: auto;
+            width: 35%;
+            border: 1px solid gainsboro;
+            border-radius: 5px;
+            border: none;
+        }
+
+        #listViewScheduling {
+            height: auto; width: 100%; border: 1px solid gainsboro; border-radius: 5px;
+        }
+
+        .toast-message {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 5px;
+            box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .error-toast-message {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #f50622e4;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 5px;
+            box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .hidden {
+            opacity: 0;
+        }
+    </style>
+
+    <div id="toast-message" class="toast-message hidden">
+        Scheduling successful!
+    </div>
+    <div id="custom-toast-message" class="error-toast-message hidden">
+        The selected date is not applicable based on the specified days:
+    </div>
+    <div id="projectAccount-toast-message" class="error-toast-message hidden" style="position: fixed; top: 27px; left: 50%; height: 12%; font-size: x-large;">
+        There are no project accounts for this project.
+    </div>
+    <div style="display: flex; align-items: center; margin-top: 2px;">
+        <div style="width: 5%;">
+            <button class="slds-button slds-button_neutral" style="margin-right: 20px;margin-bottom: 20%;" onclick="window.history.back();">
+                BACK
+            </button>
+        </div>
+    
+        <div id="store-visit-info" class="slds-box slds-grid slds-wrap" style="padding: 3px; border: 1px solid; border-radius: 5px; width: 95%; margin-bottom: 1%; background-color: #7cb5ec;gap: 6%;">
+            <div class="slds-size_1-of-7" style="display:flex; width: fit-content;">
+                <span style="text-align: center; margin-top: 2%;font-size: small;">TOTAL STORES: &nbsp;</span><span id="total-stores" style="font-size: large;"></span>
+            </div>
+            <div class="slds-size_1-of-7" style="display:flex;width: fit-content;">
+                <span style="text-align: center; margin-top: 2%;font-size: small;">TOTAL VISITS: &nbsp;</span><span id="total-visits" style="font-size: large;"></span>
+            </div>
+            <div class="slds-size_1-of-7" style="display:flex;width: fit-content;">
+                <span style="text-align: center; margin-top: 2%;font-size: small;">START DATE: &nbsp;</span><span id="start-date" style="font-size: large;"></span>
+            </div>
+            <div class="slds-size_1-of-7" style="display:flex;width: fit-content;">
+                <span style="text-align: center; margin-top: 2%;font-size: small;">END DATE: &nbsp;</span><span id="end-date" style="font-size: large;"></span>
+            </div>
+            <div class="slds-size_1-of-7" style="display:flex;width: fit-content;">
+                <span style="text-align: center; margin-top: 2%;font-size: small;">DAILY SITES: &nbsp;</span><span id="daily-sites" style="font-size: large;"></span>
+            </div>
+            <div class="slds-size_1-of-7" style="display:flex;width: fit-content;">
+                <span style="text-align: center; margin-top: 2%;font-size: small;">WORK WEEKS: &nbsp;</span><span id="work-weeks" style="font-size: large;"></span>
+            </div>
+            <div class="slds-size_1-of-7" style="display:flex;width: fit-content;">
+                <span style="text-align: center; margin-top: 2%;font-size: small;">TOTAL WORK DAYS: &nbsp;</span><span id="total-workdays" style="font-size: large;"></span>
+            </div>
+        </div>    
+    </div>
+        
+
+    <div style="display:flex; width:100%; background-color: white;margin-top: -8px;">
+        <div id="map"></div>
+        <div id="lwcContainer"></div>
+    </div>
+
+    <div style="display: flex; width: 100%; background-color: white; margin-top: 8px;">
+        <div id="listViewScheduling"></div>
+        <apex:form >
+            <input type="hidden" id="hiddenDateValue" value="{!selectedDate}" onchange="initMap()"/>
+            <input type="hidden" id="hiddenBooleanValue" value="{!showForSelectedDate}"/>
+            <input type="hidden" id="hiddenWeekValue" value="{!weekNum}"/>
+        </apex:form>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            console.log('DOMContentLoaded');
+            generateVisitReportsChart();
+        });
+
+        function initMap() {
+            var mapOptions = {
+                center: {lat: 44.97815207664927, lng: -93.27841214412005},
+                zoom: 4
+            };
+            var map = new google.maps.Map(document.getElementById('map'), mapOptions);
+
+            var greenMarker = "http://maps.google.com/mapfiles/ms/icons/green-dot.png";
+            var orangeMarker = "http://maps.google.com/mapfiles/ms/icons/orange-dot.png";
+            var redMarker = "http://maps.google.com/mapfiles/ms/icons/red-dot.png";
+
+            function getMarkerIcon(prjAcct) {
+                if (prjAcct.Project__r.Number_of_visits__c) {
+                    if (prjAcct.Visit_3__c != null && prjAcct.Project__r.Number_of_visits__c == 3) {
+                        return redMarker;
+                    } else if (prjAcct.Visit_2__c != null && prjAcct.Project__r.Number_of_visits__c == 2) {
+                        return redMarker;
+                    } else if (prjAcct.Visit_1__c != null && prjAcct.Project__r.Number_of_visits__c == 1) {
+                        return redMarker;
+                    } else if (prjAcct.Project__r.Number_of_visits__c == 3 && (prjAcct.Visit_2__c != null || prjAcct.Visit_1__c != null)) {
+                        return orangeMarker;
+                    } else if (prjAcct.Project__r.Number_of_visits__c == 2 && prjAcct.Visit_1__c != null) {
+                        return orangeMarker;
+                    } else {
+                        return greenMarker;
+                    }
+                } else {
+                    if(prjAcct.Visit_3__c){
+                        return redMarker;
+                    } else if(prjAcct.Visit_2__c || prjAcct.Visit_1__c){
+                        return orangeMarker;
+                    } else {
+                        return greenMarker;
+                    }
+                }
+            }
+
+            var selectedDate = document.getElementById('hiddenDateValue').value;
+            var showForSelectedDate = document.getElementById('hiddenBooleanValue').value;
+            var weekNum = document.getElementById('hiddenWeekValue').value;
+            console.log('selectedDate-> ' + selectedDate);
+            console.log('showForSelectedDate-> ' + showForSelectedDate);
+            console.log('weekNum-> ' + weekNum);
+            weekNum = parseInt(weekNum); 
+            console.log('weekNum 2-> ' + weekNum);
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.SchedulingMap.getProjAccts}',
+                '{!$CurrentPage.parameters.id}',
+                selectedDate, showForSelectedDate, weekNum,
+                function(result, event) {
+                    console.log('event.status-->'+event.status);
+                    if(result == null){
+                        projectAccountShowToast();
+                    }
+                    if (event.status) {
+                        console.log('result.filteredAccounts--->'+JSON.stringify(result.filteredAccounts));
+                        if (result.filteredAccounts) {
+                            generateTable(result.filteredAccounts, selectedDate, weekNum);
+                        } else {
+                            console.error('result.filteredAccounts is null or undefined');
+                        }
+
+                        document.getElementById('total-stores').innerText = result.totalStores;
+                        document.getElementById('total-visits').innerText = result.totalVisits;
+
+                        function formatDate(milliseconds) {
+                            var date = new Date(milliseconds);
+                            var options = { year: 'numeric', month: 'numeric', day: 'numeric' };
+                            return date.toLocaleDateString(undefined, options);
+                        }
+
+                        if(result.startdate){
+                            document.getElementById('start-date').innerText = formatDate(result.startdate);
+                        } else {
+                            document.getElementById('start-date').innerText = ' --';
+                        } 
+                        if(result.enddate){
+                            document.getElementById('end-date').innerText = formatDate(result.enddate);
+                        } else {
+                            document.getElementById('end-date').innerText = ' --';
+                        }
+                        if(result.workweeks) {
+                            document.getElementById('work-weeks').innerText = result.workweeks;
+                        } else {
+                            document.getElementById('work-weeks').innerText =' --';
+                        }
+                        if(result.totalworkdays) {
+                            document.getElementById('total-workdays').innerText = result.totalworkdays;
+                        } else {
+                            document.getElementById('total-workdays').innerText = ' --';
+                        }
+                        if(result.dailysites) {
+                            document.getElementById('daily-sites').innerText = result.dailysites;
+                        } else {
+                            document.getElementById('daily-sites').innerText = ' --';
+                        }
+                        console.log('result.projAccounts--->'+JSON.stringify(result.projAccounts));
+                        console.log('result.projAccounts--->'+result.projAccounts.length );
+
+                        result.projAccounts.forEach(function(prjAcct) {
+                            var address = prjAcct.Account__r.ShippingStreet + ', ' + prjAcct.Account__r.ShippingCity + ', ' + prjAcct.Account__r.ShippingState + ' ' + prjAcct.Account__r.ShippingPostalCode + ', ' + prjAcct.Account__r.ShippingCountry;
+                            var myLatlng = new google.maps.LatLng(prjAcct.Account__r.ShippingLatitude,prjAcct.Account__r.ShippingLongitude);
+                            var mapOptions = {
+                                zoom: 4,
+                                center: myLatlng,
+                            }
+                            
+                            var markerIcon = getMarkerIcon(prjAcct);
+                            var marker = new google.maps.Marker({
+                                map: map,
+                                position: myLatlng,
+                                title: prjAcct.Account__r.Name,
+                                icon: markerIcon
+                            });
+                            var infoWindowContent = '<div><strong>' + prjAcct.Account__r.Name + '</strong><br>' + address + '<br>' + myLatlng + '</div><br>';
+                            if (prjAcct.Visits__c) infoWindowContent += prjAcct.Visits__c + '<br>';
+                            var invalid = false;
+                            if(prjAcct.Project__r.Number_of_visits__c != null){
+                                if(prjAcct.Visit_1__c !=null && prjAcct.Project__r.Number_of_visits__c == 1){
+                                    invalid = true;
+                                } else if(prjAcct.Visit_2__c !=null && prjAcct.Project__r.Number_of_visits__c == 2){
+                                    invalid = true;
+                                } else if(prjAcct.Visit_3__c !=null && prjAcct.Project__r.Number_of_visits__c == 3){
+                                    invalid = true;
+                                }
+                            } else {
+                                if(prjAcct.Visit_3__c != null){
+                                    invalid = true;
+                                }
+                            }
+                            if (invalid) {
+                                infoWindowContent += '<strong>Maximum number of visits reached!</strong>';
+                            } else {
+                                infoWindowContent += '<strong><label for="datetime">Upcoming Visit: </label>';
+                                infoWindowContent += '<input type="datetime-local" id="datetime" name="datetime">';
+                                infoWindowContent += '  <button class="slds-button slds-button_brand" onclick="schedule(\'' +
+                                    prjAcct.Account__c + '\', \'' + prjAcct.Project__c + '\', document.getElementById(\'datetime\').value, \'' +
+                                    prjAcct.Project__r.Applicable_on_Days__c + '\')">Schedule</button>';
+
+                            }
+                            infoWindowContent += '<br><br>';
+                            var infoWindow = new google.maps.InfoWindow({
+                                content: infoWindowContent
+                            });
+                            marker.addListener('click', function() {
+                                infoWindow.open(map, marker);
+                            });
+                        });
+                    } else {
+                        alert('Error: ' + event.message);
+                    }
+                },
+                {escape: false}
+            );
+        }
+
+        function generateTable(filteredAccounts,selectedDate,weekNum) {
+            $Lightning.use("c:ScheduledVisitsReportApp", function() {
+                // Remove the existing component before creating a new one
+                var existingComponent = document.getElementById("listViewScheduling");
+                if (existingComponent) {
+                    existingComponent.innerHTML = "";
+                }
+                createListViewSchedulingComponent(filteredAccounts,selectedDate,weekNum);
+            });
+        }
+
+        function createListViewSchedulingComponent(filteredAccounts,selectedDate,weekNum) {
+            console.log('Creating listViewScheduling component');
+            $Lightning.createComponent(
+                "c:listViewScheduling",
+                {
+                    "recordId": '{!$CurrentPage.parameters.id}',
+                    "selectedProjAccountList": filteredAccounts,
+                    "selectedDate": selectedDate,
+                    "weekNum": weekNum
+                },
+                "listViewScheduling",
+                function(cmp) {
+                    console.log('listViewScheduling component created/updated');
+                }
+            );
+        }
+
+        function generateVisitReportsChart() {
+            console.log('called generateVisitReportsChart');
+            $Lightning.use("c:ScheduledVisitsReportApp", function() {
+                // Remove the existing component before creating a new one
+                var existingComponent = document.getElementById("lwcContainer");
+                if (existingComponent) {
+                    existingComponent.innerHTML = "";
+                }
+                createscheduledVisitsReportComponent();
+            });
+        }
+
+        function createscheduledVisitsReportComponent(){
+            $Lightning.createComponent(
+                "c:scheduledVisitsReport",
+                {
+                    "recordId": '{!$CurrentPage.parameters.id}'
+                },
+                "lwcContainer",
+                function(cmp) {
+                    console.log('scheduledVisitsReport Created');
+                }
+            );
+        }
+
+        document.addEventListener("getdata", function(event) {
+            console.log('event.detail.selectedDate => '+ event.detail.selectedDate);
+            console.log('event.detail.showForSelectedDate => '+ event.detail.showForSelectedDate);
+            console.log('event.detail.weekNum => '+ event.detail.weekNum);
+
+            var hiddenDateValue = document.getElementById('hiddenDateValue');
+            var hiddenBooleanValue = document.getElementById('hiddenBooleanValue');
+            var hiddenWeekValue = document.getElementById('hiddenWeekValue');
+            hiddenDateValue.value = event.detail.selectedDate;
+            hiddenBooleanValue.value = event.detail.showForSelectedDate;
+            hiddenWeekValue.value = event.detail.weekNum;
+            hiddenDateValue.onchange();
+        });
+
+        document.addEventListener("savecompleted", function(event) {
+            generateVisitReportsChart();
+            initMap();
+            console.log('entered----->');
+        }); 
+         
+        function schedule( accountId, projectId, datetimeValue, applicableDaysStr) {
+            console.log('datetimeValue-->'+datetimeValue)
+            if (datetimeValue) {
+                if (applicableDaysStr != null && applicableDaysStr != undefined && applicableDaysStr != 'undefined') {
+                    const daysOfWeek = ['Sunday','Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                    const visitDateParts = datetimeValue.split('T')[0].split('-'); 
+                    const year = parseInt(visitDateParts[0]);
+                    const month = parseInt(visitDateParts[1]) - 1; 
+                    const day = parseInt(visitDateParts[2]);
+                    const selectedDateObj = new Date(year, month, day);
+                    const selectedDayIndex = selectedDateObj.getDay();
+                    const selectedDay = daysOfWeek[selectedDayIndex];
+                    var applicableDays = applicableDaysStr ? applicableDaysStr.split(';') : [];
+                    if (!applicableDays.includes(selectedDay)) {
+                        customShowToast();
+                        return;
+                    }
+                }   
+                Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.SchedulingMap.scheduleVisit}',
+                    accountId,
+                    projectId,
+                    datetimeValue,
+                    function(result, event) {
+                        if (event.status) {
+                            console.log('Schedule successful');
+                            showToast();
+                            initMap();
+                            generateVisitReportsChart();
+                        } else {
+                            console.error('Error scheduling: ' + event.message);
+                        }
+                    },
+                    {escape: true}
+                );
+            }
+        }
+
+        google.maps.event.addDomListener(window, 'load', initMap);
+
+        function showToast() {
+            var toast = document.getElementById('toast-message');
+            toast.classList.remove('hidden');
+            setTimeout(function() {
+                toast.classList.add('hidden');
+            }, 500);
+        }
+
+        function customShowToast() {
+            var toast = document.getElementById('custom-toast-message');
+            toast.classList.remove('hidden');
+            setTimeout(function() {
+                toast.classList.add('hidden');
+            }, 500);
+        }
+
+        function projectAccountShowToast() {
+            var toast = document.getElementById('projectAccount-toast-message');
+            toast.classList.remove('hidden');
+            setTimeout(function() {
+                toast.classList.add('hidden');
+                window.history.back();
+            }, 1000);
+        }
+
+        function escapeString(str) {
+            if (str) {
+                return str.replace(/\\/g, '\\\\').replace(/'/g, '\\\'').replace(/"/g, '\\"');
+            }
+            return str;
+        }
+    </script>
+</apex:page>

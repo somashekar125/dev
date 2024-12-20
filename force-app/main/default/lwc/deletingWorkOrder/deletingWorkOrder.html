@@ -1,0 +1,30 @@
+<template>
+    <lightning-button variant="brand" label="Delete Work Order(s)" onclick={handleDeleteWO} class="slds-m-left_x-small" style="margin-left: 0%;"></lightning-button>
+    <template if:true={woExists}>
+        <template if:true={showSpinner}>
+            <lightning-spinner alternative-text="Consuming..." variant="brand"> </lightning-spinner>
+        </template>
+        <div class="slds-backdrop slds-backdrop_open">
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+                aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium">Confirmation</h2>
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                        title="Close" onclick={closeModal}>
+                        <lightning-icon icon-name="utility:close" alternative-text="Close" size="small"></lightning-icon>
+                        </button>
+                    </header>
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                    <p>Do you want to delete current work order only or all work orders under current work order's case along with its case?</p>
+                </div>
+                <footer class="slds-modal__footer" style="text-align: center;">
+                    <lightning-button variant="neutral" label="Cancel" title="" onclick={handleCancel} class="slds-m-left_x-small"></lightning-button>
+                    <lightning-button variant="brand" label="Current Work Order Only" title="" onclick={deleteCurrentWO} class="slds-m-left_x-small"></lightning-button>
+                    <lightning-button variant="brand" label="Delete Case And Its Work Orders" title="" onclick={deleteAll} class="slds-m-left_x-small"></lightning-button>
+                </footer>
+                </div>
+            </section>
+        </div>
+    </template>
+</template>

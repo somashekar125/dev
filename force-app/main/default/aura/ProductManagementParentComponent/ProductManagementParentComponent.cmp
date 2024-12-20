@@ -1,0 +1,10 @@
+<aura:component controller="ProductManagementInternal"  implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction,lightning:actionOverride" access="global" >
+	<aura:handler name="init" value="{!this}" action="{!c.myAction}"/>
+    <aura:attribute name="communityUser" type="String"/>
+    <aura:if isTrue="{!v.communityUser == 'Community User'}">
+        <c:ProductManagementLineItems />
+    </aura:if>
+    <aura:if isTrue="{!v.communityUser == 'Internal User'}">
+        <c:ProductManagementLineItemsInternal/>
+    </aura:if>
+</aura:component>

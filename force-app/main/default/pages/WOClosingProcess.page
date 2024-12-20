@@ -1,0 +1,17 @@
+<apex:page standardController="WorkOrder">
+    <apex:includeLightning />
+    <apex:slds />
+    <div id="lightning"/>
+    <script>
+        $Lightning.use("c:ClosingProcessApp", function() {
+            $Lightning.createComponent
+            ("c:ClosingProcess",
+            {
+                recordId: '{!WorkOrder.Id}',
+            },
+             "lightning",
+             function(component) {
+             });
+        });
+	</script>
+</apex:page>

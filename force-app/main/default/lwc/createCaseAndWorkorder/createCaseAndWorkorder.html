@@ -1,0 +1,113 @@
+<template>
+    <template if:true={showSpinner}>
+        <div>
+            <lightning-spinner alternative-text="Loading..." variant="brand" style="display:contents;"></lightning-spinner>
+        </div>
+    </template>    
+    <div data-key="searchdiv" class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none" style="padding-left: 1%;padding-right: 1%; margin-top: 1%;">
+        <input type="text" data-name="searchAccInput" value={searchKey} onkeyup={handleKeyChange} class="slds-input slds-combobox__input slds-has-focus" id="combobox-id-2" aria-autocomplete="list" aria-controls="listbox-id-2" role="textbox" placeholder="Search Project Accounts..." />
+        <span class="slds-icon_container slds-icon-utility-search slds-input__icon slds-input__icon_right">
+            <lightning-icon icon-name="utility:search" size="xx-Small" class="slds-icon slds-icon slds-icon_x-small slds-icon-text-default" aria-hidden="true"></lightning-icon>
+        </span>
+    </div>
+    <template if:true={recordsPresent}>
+        <div id="listbox-id-2-venu" data-key="dropdownresult" class="slds-show slds-dropdown slds-dropdown_length-with-icon-7 slds-dropdown_fluid" role="listbox">
+            <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                <template for:each={recordsListOnSearch} for:item="record" for:index="index">
+                    <li data-id={record.Id} data-name="fromSearchBar" data-index={index} key={record.Id} onclick={onRecordSelection} role="presentation" class="slds-listbox__item">
+                        <div data-key={record.Id} data-name={record.Name} class="slds-media slds-listbox__option slds-listbox__option_entity slds-listbox__option_has-meta" role="option">
+                            <span class="slds-media__figure slds-listbox__option-icon">
+                                <span class="slds-icon_container">
+                                    <lightning-icon icon-name="standard:account" size="small"></lightning-icon>
+                                </span>
+                            </span>
+                            <span class="slds-media__body">
+                                <span data-key={record.Id} data-name={record.Name} class="slds-listbox__option-text slds-listbox__option-text_entity">{record.Name}</span>
+                                <span data-key={record.Id} data-name={record.Name} class="slds-listbox__option-text slds-listbox__option-text_entity">{objectName}</span>
+                            </span>
+                        </div>
+                    </li>
+                </template>
+            </ul>
+        </div>
+    </template>
+    <p style="font-size: medium;font-weight: bold;margin-top:1%; padding-left: 1%">
+        Project Account List:
+    </p>
+    <div style="display: flex; align-items: center; padding-bottom: 1%; padding-left: 1%; margin-top: -1%; width: 100%; justify-content: space-between;">
+        <div style="display: flex; align-items: center; width: 70%;">
+            <lightning-input name="projectAccNoFrom" onchange={handleRangeChange} style="width: 35%;" placeholder="From"></lightning-input>&nbsp;&nbsp;
+            <lightning-input name="projectAccNoTo" onchange={handleRangeChange} style="width: 35%;" placeholder="To"></lightning-input>
+        </div>
+        <div style="position: sticky; top: 0; background-color: white; z-index: 1; display: flex; justify-content: center; align-items: center; margin-right: 5%; margin-top: 2%;">
+            <lightning-button label="Create Case(s)" onclick={createCaseAndShowToast} variant="brand"></lightning-button>
+        </div>
+    </div>
+    <div style="max-height: 290px;overflow: auto;" title="Account List">
+        <table id="table1" class="slds-table slds-table_bordered slds-table_cell-buffer">
+            <thead style="position: sticky; top: 0; z-index: 1; background-color: white;">
+                <tr class="slds-text-title_caps">
+                    <th scope="col" style="text-align: center; width: 2%;"></th>
+                    <th style="width: 17%;">
+                        <div> Project Account </div>
+                    </th>
+                    <th style="width: 16%; text-align: center;">
+                        <div> Visit 1 </div>
+                    </th>
+                    <th style="width: 16%; text-align: center;">
+                        <div> Visit 2 </div>
+                    </th>
+                    <th style="width: 16%; text-align: center;">
+                        <div> Visit 3 </div>
+                    </th>
+                    <th scope="col" style="text-align: center; width: 2%;">Case Count</th>
+                    <th style="width: 16%;">
+                        <div><lightning-button label={massSelect} onclick={handleMassSelect} variant="brand"></lightning-button></div>
+                    </th>
+                </tr>
+            </thead>            
+            <tbody>
+                <template for:each={projectAccList} for:item="pa" for:index="index">
+                    <tr key={pa.Id}>
+                        <td>
+                            {pa.serialNo}
+                        </td>
+                        <td style="white-space: normal;">
+                            {pa.Name}
+                        </td>
+                        <td>
+                            <lightning-formatted-date-time value={pa.Visit_1__c} month="2-digit" day="2-digit" year="numeric" hour="2-digit" minute="2-digit" hour12="true" time-zone={userTimezone}></lightning-formatted-date-time>
+                        </td>
+                        <td>
+                            <lightning-formatted-date-time value={pa.Visit_2__c} year="numeric" month="2-digit" day="2-digit" hour="2-digit" minute="2-digit" time-zone={userTimezone}></lightning-formatted-date-time>
+                        </td>
+                        <td>
+                            <lightning-formatted-date-time value={pa.Visit_3__c} year="numeric" month="2-digit" day="2-digit" hour="2-digit" minute="2-digit" time-zone={userTimezone}></lightning-formatted-date-time>
+                        </td>
+                        <td style="text-align: center;">
+                            {pa.count}
+                        </td>
+                        
+                        <td style="padding-left:4%;">
+                            <template if:false={pa.isSelected}>
+                                <span class="slds-media__figure slds-listbox__option-icon">
+                                    <span class="slds-icon_container">
+                                        <lightning-icon icon-name="utility:add" style="outline-style:auto;" size="x-small" data-name="fromProjectAccountList" data-id={pa.Id} data-index={index} onclick={onRecordSelection}></lightning-icon>
+                                    </span>
+                                </span>
+                            </template>
+                            <template if:true={pa.isSelected}>
+                                <span class="slds-media__figure slds-listbox__option-icon">
+                                    <span class="slds-icon_container">
+                                        <lightning-icon icon-name="utility:delete" size="small" data-id={pa.Id} data-index={index} onclick={onRemovingSelected}></lightning-icon>
+                                    </span>
+                                </span>
+                            </template>
+                        </td>
+                    </tr>
+                </template>
+            </tbody>
+        </table>
+        <br></br>
+    </div>
+</template>

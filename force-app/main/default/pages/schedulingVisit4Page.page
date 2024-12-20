@@ -1,0 +1,27 @@
+<apex:page standardController="Project_Account__c" recordSetVar="records" extensions="SchedulingVisits" action="{!init}">
+    <apex:includeLightning />
+    <apex:slds />
+    <div id="lightning"/>
+
+    <apex:form id="hiddenForm">
+        <apex:inputHidden id="selectedProjAccList" value="{!serializedProjAccList}"/>
+    </apex:form>
+
+    <script>
+        $Lightning.use("c:SchedulingVisitsApp", function() {
+            console.log('PAGE CREATED');
+            
+            const selectedProjAccList = JSON.parse(document.getElementById('{!$Component.hiddenForm.selectedProjAccList}').value);
+            console.log('Selected Project Accounts:', selectedProjAccList);
+
+            $Lightning.createComponent(
+                "c:schedulingVisits",
+                { "selectedProjAccList": selectedProjAccList, "visit": 'VISIT 4', "recordId": '{!$CurrentPage.parameters.id}' },
+                "lightning",
+                function(cmp) {
+                    console.log("LWC component was created");
+                }
+            );
+        });
+    </script>
+</apex:page>

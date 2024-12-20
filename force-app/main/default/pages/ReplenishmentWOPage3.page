@@ -1,0 +1,9 @@
+<apex:page standardController="Location">
+    <apex:includeLightning />
+    <div id="lwcContainer"></div>
+    <script>
+        $Lightning.use("c:ReplenishmentWOApp", function() {
+            $Lightning.createComponent("c:ReplenishmentWO", {}, "lwcContainer");
+        });
+    </script>
+</apex:page>

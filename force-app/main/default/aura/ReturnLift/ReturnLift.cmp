@@ -1,0 +1,12 @@
+<aura:component controller="LiftRentals" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" >
+    <aura:handler name="init" value="{!this}" action="{!c.myAction}"/>
+    <aura:attribute name="recordId" type="Id"/>
+    <div style="text-align:center;">
+        <lightning:spinner variant="brand" size="medium" style="display:contents"/>
+        <br></br>
+        <br></br>
+        <br></br>
+        <br></br>
+        <p style="font-size: medium;">Requesting Return Lift...</p>
+    </div>
+</aura:component>

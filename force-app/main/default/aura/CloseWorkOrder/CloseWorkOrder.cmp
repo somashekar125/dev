@@ -1,0 +1,64 @@
+<aura:component controller = "ClosingProcess" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" >
+	<aura:handler name="init" value="{!this}" action="{!c.myAction}"/>
+    <aura:attribute name="recordId" type="Id"/>
+    <aura:attribute name="caseRec" type="WorkOrder"/>
+    <aura:attribute name="woRec" type="WorkOrder"/>
+    <aura:attribute name="caseId" type="Id"/>
+    <aura:attribute name="allowSave" type="boolean" default="false"/>
+    <aura:attribute name="isOnsiteWO" type="boolean" default="false"/>
+    <aura:attribute name="productTransferExists" type="boolean" default="false"/>
+    <aura:attribute name="isOutOfScope" type="boolean" default="false"/>
+    <aura:attribute name="isClosing" type="boolean" default="false"/>
+    <aura:attribute name="loadSpinner" type="boolean" default="false"/>
+
+    <ltng:require styles="{!$Resource.ModalWidthWOButtons}"/>
+    <aura:if isTrue="{!!v.productTransferExists}">
+        <div >
+            <aura:if isTrue="{!v.loadSpinner}">
+                <div style="position: relative;">
+                    <lightning:spinner variant="brand" size="medium" style="height: 500px;"/>
+                </div>
+            </aura:if>
+            <lightning:recordEditForm objectApiName="WorkOrder" recordId="{!v.recordId}" onsubmit="{!c.handleSave}" onsuccess="{!c.handleSave}">
+                <aura:if isTrue="{!or(v.caseRec.SLA_Violated__c == true, v.caseRec.Part_Shipment_SLA_Violated__c == true)}">
+                    <div style="display:flex;width:100%;">
+                        <span style="padding-right:1%;">
+                            <lightning:icon class="iconColor" iconName="utility:warning" size="medium" variant="inverse"/>
+                        </span>
+                        <span>
+                            This work order currently has an SLA Violation. If SLA was actually missed, select the appropriate Missed SLA Reason, or SLA Exception Reason if the SLA violation qualifies for an exception.
+                        </span>
+                    </div>
+                    <br/>
+                </aura:if>
+                <div >
+                    <lightning:inputField aura:id="woStatus" fieldName="Status" variant="label-inline"/>
+                    <lightning:inputField aura:id="resCode" fieldName="Resolution_Code__c" variant="label-inline" required="{!v.isClosing}"/>
+                    <lightning:inputField fieldName="Resolution_Notes__c" variant="label-inline"/>
+                    <aura:if isTrue="{!or(v.caseRec.SLA_Violated__c == true, v.caseRec.Part_Shipment_SLA_Violated__c == true)}">
+                        <lightning:inputField fieldName="Missed_SLA_Reason__c" variant="label-inline"/>
+                        <lightning:inputField fieldName="SLA_Exception_Code__c" variant="label-inline"/>
+                    </aura:if>
+                    <lightning:inputField fieldName="Onsite_Manager_Name__c" variant="label-inline"/>
+                    <lightning:inputField fieldName="Help_Desk_Contact__c" variant="label-inline"/>
+                    <aura:if isTrue="{!v.isOnsiteWO == true}">
+                        <lightning:inputField fieldName="Check_In_Time__c" variant="label-inline" class="slds-form-element_check-in-time-c"/>
+                        <lightning:inputField fieldName="Check_Out_Time__c" variant="label-inline" class="slds-form-element_check-out-time-c"/>
+                    </aura:if>
+                    <lightning:inputField fieldName="Return_Order_Tracking_Numbers__c" variant="label-inline"/>
+                    <lightning:inputField fieldName="No_Return_Shipment__c" variant="label-inline"/>
+                    <lightning:inputField fieldName="No_Cost__c" variant="label-inline"/>
+
+                    <lightning:inputField fieldName="OutofScope__c" variant="label-inline" aura:id="outOfScopeField" />
+                    <lightning:inputField fieldName="Out_of_Scope_Reason__c" variant="label-inline" aura:id="reasonField" required="{!v.isOutOfScope}"/>
+
+                    <lightning:inputField fieldName="Closing_Process__c" variant="label-inline" value="{!v.allowSave}" style="display: none;"/>
+                    <footer class="slds-modal__footer" style="text-align: center;">
+                        <lightning:button name='Cancel' label='Cancel' onclick='{!c.handleCancel}'/>
+                        <lightning:button variant="brand" name='Save' label='Save' type="Submit" onclick='{!c.handleSave}'/>
+                    </footer>
+                </div>
+            </lightning:recordEditForm>
+        </div>
+    </aura:if>
+</aura:component>

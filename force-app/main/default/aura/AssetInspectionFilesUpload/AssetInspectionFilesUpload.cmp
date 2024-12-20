@@ -1,0 +1,45 @@
+<aura:component controller="AssetInspectionFilesUpload" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction,lightning:availableForFlowScreens" access="global" >
+    <aura:handler name="init" value="{!this}" action="{!c.myAction}"/>
+    <aura:attribute name="recordId" type="string" access="global"/>
+    <aura:attribute name="inspectType" type="string" access="global"/>
+    <aura:attribute name="inspectTypeToUpdate" type="string" access="global"/>
+    <aura:attribute name="multipleFiles" type="boolean" access="global"/>
+    <aura:attribute name="hideUpload" type="boolean" access="global"/>
+    <aura:attribute name="documentList" type="ContentDocumentLink[]" access="global"/>
+    <aura:attribute name="filetype" type="List" default="['.png', '.jpg', '.jpeg']" />
+    <div class="slds-grid slds-gutters">
+        <aura:if isTrue="{!empty(v.documentList)}">
+            <div class="slds-col">
+                <lightning:fileUpload label="{!v.inspectType}"
+                                      name="fileUploader"
+                                      multiple="{!v.multipleFiles}"
+                                      accept="{!v.filetype}"
+                                      recordId="{!v.recordId}"
+                                      onuploadfinished="{!c.handleUploadFinished}"
+                                      />
+            </div>
+        </aura:if>
+        <div class="slds-col">
+            <div style="overflow : hidden">
+                <aura:iteration items="{!v.documentList}" var="docLink">
+                    <div id="{!docLink.ContentDocumentId}">
+                        <lightning:fileCard fileId="{!docLink.ContentDocumentId}"/>
+                    </div>
+                </aura:iteration>
+            </div>
+        </div>
+    </div>
+    <aura:if isTrue="{!and(lessthan(v.documentList.length, 2), v.inspectType == 'After Inspect')}">
+        <div class="slds-grid slds-gutters">
+            <div class="slds-col">
+                <lightning:fileUpload label="{!v.inspectType}"
+                                      name="fileUploader"
+                                      multiple="{!v.multipleFiles}"
+                                      accept="{!v.filetype}"
+                                      recordId="{!v.recordId}"
+                                      onuploadfinished="{!c.handleUploadFinished}"
+                                      />
+            </div>
+        </div>
+    </aura:if>
+</aura:component>

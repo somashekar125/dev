@@ -1,0 +1,164 @@
+<template>
+    <template if:true={projectAccountExists}>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <lightning-button  label="FILTER BY DATE/WEEK SELECTED" title = "SelectedDate" onclick={handleButtonClick} variant="brand" ></lightning-button>
+            <div style="flex-grow: 1; text-align: center; background:#f3f3f3;">
+                <p style="margin: 3px; font-size: large; font-weight: 700;">STORES UNDER {projName}</p>
+            </div>
+            <lightning-button icon-name="utility:download" label="DOWNLOAD AS CSV" onclick={downloadCSVFile} variant="brand"></lightning-button>
+        </div>                
+            <table class="slds-table slds-table_cell-buffer slds-table_bordered" style="border: 1px solid gainsboro;"> 
+                <thead>
+                    <tr>
+                        <th scope="col" style="text-align: center; width: 3%;"></th>
+                        <th scope="col" style="text-align: center; width: 13%;font-size: small;">
+                            <a href="javascript:void(0);" title = "STORE" onclick={handleMetroAreaSort}>
+                                STORE
+                                <template if:true={sortIconStrore}>
+                                    <lightning-icon icon-name={sortIconName1} size="xx-small" alternative-text="Sort" title="Sort"></lightning-icon>
+                                </template>
+                            </a>
+                        </th>
+                        <template if:true={hasVisit1Column}>
+                            <th scope="col" style="text-align: center; width: 23%;font-size: small;">VISIT 1</th>
+                        </template>
+                        <template if:true={hasVisit2Column}>
+                            <th scope="col" style="text-align: center; width: 23%;font-size: small;">VISIT 2</th>
+                        </template>
+                        <template if:true={hasVisit3Column}>
+                            <th scope="col" style="text-align: center; width: 23%;font-size: small;">VISIT 3</th>
+                        </template>
+                        <th scope="col" style="text-align: center; width: 8%;">
+                            <a href="javascript:void(0);" title = "METRO AREA" onclick={handleMetroAreaSort}>
+                                METRO AREA
+                                <template if:true={sortIconMetroArea}>
+                                    <lightning-icon icon-name={sortIconName2} size="xx-small" alternative-text="Sort" title="Sort"></lightning-icon>
+                                </template>
+                            </a>
+                        </th> 
+                        <th scope="col" style="text-align: center; width: 5%;font-size: small;">ADDRESS</th>                                               
+                        <th scope="col" style="text-align: center; width: 3%;font-size: small;">TIMEZONE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template for:each={projectAccounts} for:item="pa" for:index="index">
+                        <tr key={pa.Id}>    
+                            <td data-label="" style="text-align: center; width: 3%;">{pa.serialNo}.</td>
+                            <td data-label="STORE" style="text-align: center; width: 13%; white-space: normal;">{pa.Account__r.Name}</td>
+                            <template if:true={hasVisit1Column}>
+                                <td data-label="VISIT 1" style="text-align: center; width: 23%;">
+                                    <template if:true={pa.hasVisit1}>
+                                        <lightning-formatted-date-time value={pa.visit1} month="2-digit" day="2-digit" year="numeric" hour="2-digit" minute="2-digit"  hour12="true" time-zone={userTimezone}></lightning-formatted-date-time>&nbsp;
+                                        <lightning-icon icon-name="utility:edit" size="xx-small" data-id={pa.Id} alternative-text="Edit" title="Edit Visit 1" onclick={handleEditVisit}></lightning-icon>
+                                    </template>
+                                    <template if:true={pa.schedule1}>
+                                        <a href="javascript:void(0);" data-id={pa.Id} title="Edit Visit 1" onclick={handleEditVisit}>SCHEDULE NOW</a>
+                                    </template>
+                                    <template if:true={pa.hasEditVisit1}>
+                                        <template if:true={pa.Visit_1__c}>
+                                            <lightning-input type="datetime" title="Edited Visit 1" data-id={pa.Id} value={pa.Visit_1__c} onchange={handleDateTimeChange} variant="label-hidden"></lightning-input>
+                                        </template>
+                                        <template if:false={pa.Visit_1__c}>
+                                            <div style="display: flex;">
+                                                <lightning-input type="date" data-id={pa.Id} title="Edited Visit 1" value={pa.visitDate1} data-index={index} onchange={populateDate} variant="label-hidden" style="margin-right: 0.5rem;margin-top: 1%;"></lightning-input>
+                                                <lightning-input type="time" data-id={pa.Id} title="Edited Visit 1" value={pa.visitTime1} data-index={index} onchange={populateTime} variant="label-hidden" style="margin-top: 1%;"></lightning-input>
+                                            </div>
+                                        </template>
+                                    </template>          
+                                </td>
+                            </template>
+                            <template if:true={hasVisit2Column}>
+                                <td data-label="VISIT 2" style="text-align: center; width: 23%;">
+                                    <template if:true={pa.hasVisit2}>
+                                        <lightning-formatted-date-time value={pa.visit2} month="2-digit" day="2-digit" year="numeric" hour="2-digit" minute="2-digit"  hour12="true" time-zone={userTimezone}></lightning-formatted-date-time>&nbsp;
+                                        <lightning-icon icon-name="utility:edit" size="xx-small" data-id={pa.Id} alternative-text="Edit" title="Edit Visit 2" onclick={handleEditVisit}></lightning-icon>
+                                    </template>
+                                    <template if:true={pa.schedule2}>
+                                        <a href="javascript:void(0);" data-id={pa.Id} title="Edit Visit 2" onclick={handleEditVisit}>SCHEDULE NOW</a>
+                                    </template>
+                                    <template if:true={pa.hasEditVisit2}>
+                                        <template if:true={pa.Visit_2__c}>
+                                            <lightning-input type="datetime" title="Edited Visit 2" data-id={pa.Id} value={pa.Visit_2__c} onchange={handleDateTimeChange} variant="label-hidden"></lightning-input>
+                                        </template>
+                                        <template if:false={pa.Visit_2__c}>
+                                            <div style="display: flex;">
+                                                <lightning-input type="date" data-id={pa.Id} title="Edited Visit 2" value={pa.visitDate2} data-index={index} onchange={populateDate} variant="label-hidden" style="margin-right: 0.5rem;margin-top: 1%;"></lightning-input>
+                                                <lightning-input type="time" data-id={pa.Id} title="Edited Visit 2" value={pa.visitTime2} data-index={index} onchange={populateTime} variant="label-hidden" style="margin-top: 1%;"></lightning-input>
+                                            </div>
+                                        </template>
+                                    </template>
+                                </td>
+                            </template>
+                            <template if:true={hasVisit3Column}>
+                                <td data-label="VISIT 3" style="text-align: center; width: 23%;">
+                                    <template if:true={pa.hasVisit3}>
+                                        <lightning-formatted-date-time value={pa.visit3} month="2-digit" day="2-digit" year="numeric" hour="2-digit" minute="2-digit"  hour12="true" time-zone={userTimezone}></lightning-formatted-date-time>&nbsp;
+                                        <lightning-icon icon-name="utility:edit" size="xx-small" data-id={pa.Id} alternative-text="Edit" title="Edit Visit 3" onclick={handleEditVisit}></lightning-icon>
+                                    </template>
+                                    <template if:true={pa.schedule3}>
+                                        <a href="javascript:void(0);" data-id={pa.Id} title="Edit Visit 3" onclick={handleEditVisit}>SCHEDULE NOW</a>
+                                    </template>
+                                    <template if:true={pa.hasEditVisit3}>
+                                        <template if:true={pa.Visit_3__c}>   
+                                            <lightning-input type="datetime" title="Edited Visit 3" data-id={pa.Id} value={pa.Visit_3__c} onchange={handleDateTimeChange} variant="label-hidden"></lightning-input>
+                                        </template>
+                                        <template if:false={pa.Visit_3__c}>
+                                            <div style="display: flex;">
+                                                <lightning-input type="date" data-id={pa.Id} title="Edited Visit 3" value={pa.visitDate3} data-index={index} onchange={populateDate} variant="label-hidden" style="margin-right: 0.5rem;margin-top: 1%;"></lightning-input>
+                                                <lightning-input type="time" data-id={pa.Id} title="Edited Visit 3" value={pa.visitTime3} data-index={index} onchange={populateTime} variant="label-hidden" style="margin-top: 1%;"></lightning-input>
+                                            </div>
+                                        </template>
+                                    </template>
+                                </td>
+                            </template>
+                            <td data-label="METRO AREA" style="text-align: center; width: 8%; white-space: normal;">{pa.Account__r.Metro_Area__c}</td>
+                            <td data-label="TIMEZONE" style="text-align: center; width: 5%; white-space: normal;">
+                                {pa.Account__r.ShippingStreet}{pa.Account__r.ShippingCity}, {pa.Account__r.ShippingState},
+                                {pa.Account__r.ShippingCountry}-{pa.Account__r.ShippingPostalCode}
+                            </td>
+                            <td data-label="TIMEZONE" style="text-align: center; width: 3%;">{pa.Account__r.Timezone__c}</td>                    
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        <br/>
+    </template>
+    <template if:false={projectAccountExists}>
+        <p style="text-align: center;font-weight: bold; font-size: 18px;">No stores found under this project.</p>
+    </template> 
+    <div class="selected-date" style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+        background-color: #f10909; color: rgb(248, 246, 246); padding: 15px 30px; border-radius: 5px;
+        box-shadow: 0px 2px 10px rgb(245, 6, 6); z-index: 9999; transition: opacity 0.3s ease-in-out;">
+        Please choose a date/week above!.
+    </div>      
+    <template if:true={Edit}>
+        <div class="button-container" style = "display: flex; justify-content: center; gap: 1rem;">
+            <lightning-button label="Cancel" variant="neutral" onclick={handleCancel}></lightning-button>
+            <lightning-button label="Save" variant="brand" type="submit" onclick={handleSave}></lightning-button>
+        </div>
+        <div class="error-toast-message warning" style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background-color: #f10909; color: rgb(248, 246, 246); padding: 15px 30px; border-radius: 5px;
+            box-shadow: 0px 2px 10px rgb(245, 6, 6); z-index: 9999; transition: opacity 0.3s ease-in-out; max-height: 50px; overflow: hidden;">
+            Visits can only be scheduled on these Days: {applicableDays}!
+        </div>
+        <div class="error-toast-message-Visit2" style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background-color: #f10909; color: rgb(248, 246, 246); padding: 15px 30px; border-radius: 5px;
+            box-shadow: 0px 2px 10px rgb(245, 6, 6); z-index: 9999; transition: opacity 0.3s ease-in-out;">
+            Please complete Visit 1 before proceeding to Visit 2!.
+        </div>
+        <div class="error-toast-message-Visit3" style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background-color: #f10909; color: rgb(248, 246, 246); padding: 15px 30px; border-radius: 5px;
+            box-shadow: 0px 2px 10px rgb(245, 6, 6); z-index: 9999; transition: opacity 0.3s ease-in-out;">
+            Please complete Visit 2 before proceeding to Visit 3!.
+        </div>
+        <div class="visit-toast-message" style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background-color: #f10909; color: rgb(248, 246, 246); padding: 15px 30px; border-radius: 5px;
+            box-shadow: 0px 2px 10px rgb(245, 6, 6); z-index: 9999; transition: opacity 0.3s ease-in-out;">
+            This visit is prohibited!!.
+        </div>
+    </template><br/>
+
+    <template if:true={showSpinner}>
+        <lightning-spinner style="position:fixed" alternative-text="Loading" variant="brand"></lightning-spinner>
+    </template>
+</template>

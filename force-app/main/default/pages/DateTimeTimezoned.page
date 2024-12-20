@@ -1,0 +1,17 @@
+<apex:page standardController="Case">
+    <apex:includeLightning />
+    <apex:slds />
+    <div id="lightning"/>
+    <script>
+        $Lightning.use("c:DateTimeTimezonedApp", function() {
+            $Lightning.createComponent
+            ("c:DateTimeTimezoned",
+            {
+                recordId: '{!Case.Id}',
+            },
+             "lightning",
+             function(component) {
+             });
+        });
+	</script>
+</apex:page>

@@ -1,0 +1,59 @@
+<aura:component controller="BundleWorkorders" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" >
+    <aura:handler name="init" value="{!this}" action="{!c.myAction}"/>
+    <aura:attribute name="recordId" type="string"/>
+    <aura:attribute name="totalWOs" type="WorkOrder[]" default="[]"/>
+    <aura:attribute name="bndlWOs" type="WorkOrder[]" default="[]"/>
+    <aura:attribute name="selectedRowsAdd" type="WorkOrder[]" default="[]"/>
+    <aura:attribute name="bundleWO" type="WorkOrder"/>
+    <aura:attribute name="columns" type="List"/>
+    <aura:attribute name="columns2" type="List"/>
+    <aura:attribute name="loadSpinner" type="boolean" default="false"/>
+    <aura:attribute name="selectedRows" type="List"/>
+    <aura:if isTrue="{!v.loadSpinner}">
+        <lightning:spinner variant="brand" size="large"/>
+    </aura:if>
+    <div>
+        <aura:if isTrue="{!v.bndlWOs.length != 0}">
+            <div style="text-align:right;height:40px;">
+                <div style="float: left;font-size: 20px;">
+                	WO In the Bundle
+                </div>
+                <!-- ul class="slds-button-group-list">
+                    <li>
+                        <button class="slds-button slds-button_brand" onclick="{!c.saveTobucket}">Remove from Bundle</button>
+                    </li>
+                </ul -->
+            </div>
+            <div style="width:100%;">
+                <lightning:datatable
+                                     keyField="id"
+                                     data="{! v.bndlWOs }"
+                                     columns="{! v.columns2 }"
+                                     hideCheckboxColumn="true"
+                                     onrowaction = "{!c.handleRowAction}"
+                                     selectedRows="{!v.selectedRows}"/>
+            </div>
+        </aura:if>
+        <aura:if isTrue="{!v.totalWOs.length != 0}">
+            <div style="text-align:right;height:40px;">
+                <div style="float: left;font-size: 20px;">
+                	Potential WO for Bundle
+                </div>
+                <!-- ul class="slds-button-group-list">
+                    <li>
+                        <button class="slds-button slds-button_brand" onclick="{!c.saveTobucket}">Add to Bundle</button>
+                    </li>
+                </ul -->
+            </div>
+            <div style="width:100%;">
+                <lightning:datatable
+                                     keyField="id"
+                                     data="{! v.totalWOs }"
+                                     columns="{! v.columns }"
+                                     hideCheckboxColumn="true"
+                                     onrowaction = "{!c.handleRowAction}"
+                                     selectedRows="{!v.selectedRows}"/>
+            </div>
+        </aura:if>
+    </div>
+</aura:component>
